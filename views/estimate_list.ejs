@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>견적관리</title>
+  <style>
+    body { font-family: system-ui; max-width: 900px; margin: 40px auto; }
+    h1 { margin: 0 0 16px; font-size: 24px; }
+
+    /* 테이블 + 버튼 묶음 래퍼 */
+    .table-wrapper {
+      position: relative;
+    }
+
+    /* 메인 / 견적등록 버튼: 테이블 오른쪽 상단에 위치 */
+    .table-actions {
+      position: absolute;
+      right: 119px;
+      top: -36px;        /* 버튼 높이랑 원하는 위치에 맞게 숫자 살짝 조정 가능 */
+      display: flex;
+      gap: 8px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;      /* 테이블이 컨테이너 폭 꽉 채우게 */
+    }
+    th, td {
+      border:1px solid #ddd; padding:6px 8px; font-size:13px;
+    }
+    td.date-cell {
+      border-right: 1px solid #ddd;
+    }
+
+    /* 수정 버튼 칸은 테두리 없게 */
+    td.action-cell,
+    th.action-cell-header {
+      border: none;
+      background: transparent;
+      padding-left: 4px;
+    }
+    td.action-cell {
+      border: none;
+      background: transparent;
+      padding-left: 4px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 4px;             /* 버튼 간 간격 */
+      white-space: nowrap;  /* 줄바꿈 방지 */
+    }
+
+    /* 아이콘 버튼 통일 스타일 */
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      margin: 0;
+      border: 1px solid #007bff;
+      border-radius: 4px;
+      background: #007bff;
+      
+      display: inline-flex;      /* 버튼/링크 모두 flex로 통일 */
+      align-items: center;
+      justify-content: center;
+
+      cursor: pointer;
+      box-sizing: border-box;     /* 크기를 완전히 일치시킴 */
+      text-decoration: none;      /* a 태그 밑줄 제거 */
+    }
+    /* a 태그/버튼 공통 초기화 */
+    a.icon-btn, button.icon-btn {
+      line-height: 0;             /* 글자 높이로 인한 차이 제거 */
+      font-size: 0;               /* 여백 발생 요인 제거 */
+      border: none;               /* 기본 border 제거 */
+      outline: none;
+    }
+    /* 이미지 크기 강제로 동일하게 */
+    .icon-btn img {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+
+    /* 아이콘 이미지 크기 조정 */
+    .icon-btn img {
+      width: 16px;   /* 아이콘 크기 원하는 대로 조절 */
+      height: 16px;
+      display: block;
+    }
+
+    /* 색깔 버튼 */
+    .btn-blue  { background:#007bff; color:#fff; }
+    .btn-green { background:#28a745; color:#fff; }
+    .btn-red   { background:#dc3545; color:#fff; }
+
+    .btn-sm {
+      padding: 3px 8px;
+      font-size: 12px;
+    }
+    th { background:#f4f4f4; }
+    a { text-decoration:none; color:#007bff; }
+    a:hover { text-decoration:underline; }
+    .btn {
+      padding:6px 10px;
+      border-radius:4px;
+      border:1px solid #007bff;
+      background:#007bff;
+      color:#fff;
+      font-size:13px;
+    }
+    .btn-outline {
+      background:#fff;
+      color:#007bff;
+    }
+    .text-right { text-align:right; }
+    .text-center { text-align:center; }
+
+    .search-form {
+      margin: 0 0 8px;
+      display: flex;
+      gap: 6px;
+      justify-content: flex-start;  /* 필요하면 flex-end 로 바꿔서 오른쪽 정렬 */
+    }
+
+    .search-form input[type="text"] {
+      flex: 0 0 220px;
+      padding: 4px 6px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .pagination {
+      margin-top: 10px;
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .pagination .page {
+      min-width: 24px;
+      padding: 3px 6px;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      text-align: center;
+      text-decoration: none;
+      color: #333;
+    }
+
+    .pagination .page.current {
+      background: #007bff;
+      border-color: #007bff;
+      color: #fff;
+      font-weight: 600;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>견적관리</h1>
+
+    <!-- 검색 폼 -->
+    <form method="GET" action="/estimate" class="search-form">
+    <input
+      type="text"
+      name="q"
+      placeholder="견적명 검색"
+      value="<%= searchQuery || "" %>"
+    />
+    
+    <!-- 검색 -->
+    <button type="submit" class="btn btn-outline btn-sm">검색</button>
+
+    <!-- 새로고침 -->
+    <button
+      type="button"
+      class="btn btn-outline btn-sm"
+      onclick="window.location.href='/estimate'">
+      새로고침
+    </button>
+  </form>
+
+
+  <% if (estimates.length === 0) { %>
+    <div class="table-wrapper">
+      <div class="table-actions">
+        <a href="/" class="btn btn-outline">메인</a>
+        <a href="/estimate/new" class="btn">견적 등록</a>
+      </div>
+      <p>등록된 견적이 없습니다. 우측 상단 "견적 등록" 버튼을 눌러 추가하세요.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrapper">
+      <div class="table-actions">
+        <a href="/" class="btn btn-outline">메인</a>
+        <a href="/estimate/new" class="btn">견적 등록</a>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60px;">번호</th>
+            <th style="width:500px;">견적명</th>
+            <th style="width:90px;">거래처</th>
+            <th style="width:110px;">견적금액</th>
+            <th style="width:60px;">등록일</th>
+            <th class="action-cell-header" style="width:70px;"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% estimates.forEach((e) => { %>
+            <tr>
+              <!-- 번호 -->
+              <td class="text-center"><%= e.row_no %></td>
+              
+              <!-- 견적명 -->
+              <td>
+                <a href="/estimate/<%= e.id %>">
+                  <%= e.title %>
+                </a>
+              </td>
+
+              <td class="text-center"><%= e.client_name || "" %></td>
+
+              <td class="text-right">
+                <%= e.total_amount ? e.total_amount.toLocaleString("ko-KR") : "" %>
+              </td>
+
+              <!-- 등록일: 날짜만, YYYY.MM.DD -->
+              <td class="text-center date-cell">
+                <%= e.created_at.slice(0,10).replace(/-/g, ".") %>
+              </td>
+
+              <td class="action-cell">
+                <div class="action-buttons">
+
+                  <!-- 수정 : 상세 수정 화면 링크 -->
+                  <a href="/estimate/<%= e.id %>/edit"
+                    class="icon-btn"
+                    title="수정">
+                    <img src="/icons/edit.png" alt="수정" />
+                  </a>
+
+                  <!-- 복사 -->
+                  <button type="button"
+                          class="icon-btn"
+                          title="복사"
+                          onclick="copyEstimate(<%= e.id %>)">
+                    <img src="/icons/copy.png" alt="복사" />
+                  </button>
+
+                  <!-- 삭제 -->
+                  <button type="button"
+                          class="icon-btn"
+                          title="삭제"
+                          onclick="deleteEstimate(<%= e.id %>)">
+                    <img src="/icons/delete.png" alt="삭제" />
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      
+      <!-- 페이징 -->
+      <% if (totalPages > 1) { %>
+        <div class="pagination">
+          <% for (let p = 1; p <= totalPages; p++) { %>
+            <% if (p === currentPage) { %>
+              <span class="page current"><%= p %></span>
+            <% } else { %>
+              <a
+                class="page"
+                href="/estimate?page=<%= p %><%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>">
+                <%= p %>
+              </a>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+
+    </div>
+  <% } %>
+
+  <script>
+    function copyEstimate(id) {
+      if (!confirm("해당 건의 견적서를 복사하시겠습니까?")) return;
+
+      // 복사 요청
+      fetch(`/estimate/${id}/copy`, {
+        method: "POST"
+      })
+      .then(res => {
+        if (res.redirected) {
+          window.location.href = res.url;   // 새 견적 수정화면으로 이동
+        } else {
+          alert("복사 처리 중 오류가 발생했습니다.");
+        }
+      });
+    }
+
+    function deleteEstimate(id) {
+      if (!confirm("정말로 이 견적을 삭제하시겠습니까?")) return;
+
+      fetch(`/estimate/${id}/delete`, {
+        method: "POST"
+      })
+      .then(res => {
+        if (res.redirected) {
+          window.location.href = res.url;
+        } else {
+          alert("삭제 처리 중 오류가 발생했습니다.");
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

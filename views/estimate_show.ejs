@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>견적 상세</title>
+  <style>
+    body { 
+      font-family: system-ui;
+      background: #f5f5f5;
+      margin: 0; 
+    }
+    /* 견적서 전체 프레임 */
+    .estimate-wrap {
+      max-width: 1450px;
+      margin: 24px auto 40px;
+      background: #ffffff;
+      padding: 20px 24px 28px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+
+    h1 { text-align: center; margin: 0 0 20px 0; }
+    .header-row {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .header-row label {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .header-row input[type="text"] {
+      width: 400px;
+      padding: 4px 6px;
+      border:1px solid #ccc;
+      border-radius:4px;
+      font-size:13px;
+      background: #f7f7f7;
+    }
+    .header-input { text-align: left !important; }
+    
+    /* 화면에서 볼 때만 넓게(1400px) */
+    @media screen {
+      table {
+        width: 1400px;
+        border-collapse: collapse;
+        font-size: 11px;
+        table-layout: fixed;
+      }
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 3px 4px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th.col-name, td.col-name { width: 17%; }
+    th.col-spec, td.col-spec { width: 15%; }
+    th.col-unit, td.col-unit { width: 4%;  }
+    th.col-qty,  td.col-qty  { width: 5%;  }
+
+    th.col-mu,  td.col-mu,
+    th.col-ma,  td.col-ma,
+    th.col-lu,  td.col-lu,
+    th.col-la,  td.col-la,
+    th.col-eu,  td.col-eu,
+    th.col-ea,  td.col-ea,
+    th.col-tu,  td.col-tu,
+    th.col-ta,  td.col-ta { width: 6%; }
+
+    th.col-note, td.col-note { width: 5%; }
+
+    td input {
+      width: 100%;
+      box-sizing: border-box;
+      border: none;
+      padding: 1px 2px;
+      font-size: 11px;
+      background: #f7f7f7;
+    }
+
+    td.col-name input,
+    td.col-spec input {
+      text-align: left;
+    }
+
+    td.col-qty    input,
+    td.col-mu     input,
+    td.col-ma     input,
+    td.col-lu     input,
+    td.col-la     input,
+    td.col-eu     input,
+    td.col-ea     input,
+    td.col-tu     input,
+    td.col-ta     input {
+      text-align: right;
+    }
+
+    /* 합계 행 스타일 */
+    tr.total-row td {
+      font-weight: 700;      /* 숫자 굵게 */
+    }
+
+    /* 품명 칸 회색 배경 + 왼쪽 정렬 */
+    td.total-label {
+      background: #eeeeee;
+      text-align: left;
+    }
+
+    thead th {
+      background: #ddebf7;
+      font-weight: 600;
+    }
+    .sub-header { background: #ddebf7; }
+
+    input[readonly] { background: #f7f7f7; }
+
+    .text-left { text-align:left; }
+    .text-left input { text-align:left; }
+
+    .actions {
+      margin-top: 16px;
+      display:flex;
+      gap:8px;
+      justify-content: center;
+    }
+    .btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #007bff;
+      background: #007bff;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-outline {
+      background:#fff;
+      color:#007bff;
+    }
+    a { text-decoration:none; }
+
+   
+    /* 인쇄 설정 (A4 가로 + 헤더/푸터 제거) */
+    @page {
+      size: A4 landscape;
+      margin: 0;  /* 브라우저 기본 헤더/푸터 제거 */
+    }
+
+    @media print {
+
+      /* 인쇄 시 배경 및 색 유지 */
+      body {
+        margin: 12mm !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* 화면 UI 요소 제거 */
+      .actions,
+      .btn,
+      header,
+      nav,
+      footer {
+        display: none !important;
+      }
+
+      /* 인쇄 페이지 제목 제거 */
+      title { display: none !important; }
+
+      /* URL / 날짜/시간 등 기본 footer 제거 효과 */
+      * {
+        -webkit-margin-before: 0 !important;
+        -webkit-margin-after: 0 !important;
+      }
+
+      /* 견적서 내부는 페이지 나눔 자동 방지 */
+      table, tr, td, th {
+        page-break-inside: avoid;
+      }
+      
+      /* 👉 인쇄 시 테이블은 용지 폭 100% 사용 */
+      table {
+        width: 100% !important;
+        border-collapse: collapse;
+        border: 0.5pt solid #999;      /* 전체 테이블 외곽선 */
+      }
+
+      /* 👉 각 셀은 가로/세로 줄 모두 유지 (좀 더 얇고 옅게) */
+      th, td {
+        border: 0.5pt solid #ccc;      /* 세로줄 포함 전체 그리드 */
+        padding: 2px 3px;
+        font-size: 10px;               /* 화면보다 살짝 줄여서 금액이 안 짤리게 */
+        box-sizing: border-box;
+      }
+
+      /* 행마다 가로줄만 얇게 */
+      tbody tr {
+        border-bottom: 0.5pt solid #bbb;
+      }
+
+      thead tr {
+        border-bottom: 1pt solid #666;
+      }
+
+      /* 👉 입력칸 느낌 없애되, 숫자가 잘 안 짤리게 */
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        padding: 0 2px;
+        font-size: 10px;               /* 테이블과 맞춤 */
+        box-sizing: border-box;
+      }
+      
+      /* 숫자(단가/금액) 칸은 오른쪽 정렬 유지 */
+      .col-qty    input,
+      .col-mu     input,
+      .col-ma     input,
+      .col-lu     input,
+      .col-la     input,
+      .col-eu     input,
+      .col-ea     input,
+      .col-tu     input,
+      .col-ta     input {
+        text-align: right;
+      }
+
+      /* 견적서 전체를 꽉 채우기 */
+      .estimate-wrap {
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+      }
+    }
+
+    /* 공사명 / 발주처는 박스 없이 글자처럼 보이게 */
+    .header-row input[type="text"] {
+      border: none !important;          /* 테두리 제거 */
+      background: transparent !important;/* 배경색 제거 */
+      box-shadow: none !important;      /* 그림자 제거 */
+      padding: 0 !important;            /* 안쪽 여백 제거 */
+      width: auto !important;           /* 고정폭(400px) 없애고 내용 길이만큼만 */
+      font-size: 14px;                  /* 필요하면 조정 */
+    }
+
+  </style>
+</head>
+<body>
+  <% 
+    function fmt(n) {
+      if (n === null || n === undefined || n === "") return "";
+      const num = Number(n);
+      if (isNaN(num)) return n;
+      return num.toLocaleString("ko-KR");
+    }
+  %>
+  <div class="estimate-wrap">
+    <h1>견 적 내 역 서</h1>
+
+    <div class="header-row">
+      <label for="title">공사명 :</label>
+      <input type="text" id="title" class="header-input" readonly
+        value="<%= estimate.title %>" />
+      &nbsp;&nbsp;
+      <label for="client_name">발주처 :</label>
+      <input type="text" id="client_name" class="header-input" readonly
+        value="<%= estimate.client_name || "" %>" />
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2" class="col-name">품 명</th>
+            <th rowspan="2" class="col-spec">규 격</th>
+            <th rowspan="2" class="col-unit">단위</th>
+            <th rowspan="2" class="col-qty">수량</th>
+            <th colspan="2">재 료 비</th>
+            <th colspan="2">노 무 비</th>
+            <th colspan="2">경 비</th>
+            <th colspan="2">합 계</th>
+            <th rowspan="2" class="col-note">비 고</th>
+          </tr>
+          <tr class="sub-header">
+            <th class="col-mu">단가</th>
+            <th class="col-ma">금액</th>
+            <th class="col-lu">단가</th>
+            <th class="col-la">금액</th>
+            <th class="col-eu">단가</th>
+            <th class="col-ea">금액</th>
+            <th class="col-tu">단가</th>
+            <th class="col-ta">금액</th>
+          </tr>
+        </thead>
+
+        <tbody>
+            <% 
+              let sumMaterialAmount = 0;
+              let sumLaborAmount    = 0;
+              let sumExpenseAmount  = 0;
+              let sumTotalAmount    = 0;
+            %>
+            <% items.forEach(function(row, i) { 
+                sumMaterialAmount += Number(row.material_amount || 0);
+                sumLaborAmount    += Number(row.labor_amount || 0);
+                sumExpenseAmount  += Number(row.expense_amount || 0);
+                sumTotalAmount    += Number(row.total_amount || 0);
+            %>
+            <tr>
+              <td class="text-left col-name">
+                <input type="text" value="<%= row.item_name || "" %>" readonly />
+              </td>
+
+              <td class="text-left col-spec">
+                <input type="text" value="<%= row.spec || "" %>" readonly />
+              </td>
+
+              <td class="col-unit">
+                <input type="text" value="<%= row.unit || "" %>" readonly />
+              </td>
+
+              <td class="col-qty">
+                <input type="text" value="<%= fmt(row.qty) %>" readonly />
+              </td>
+
+              <td class="col-mu">
+                <input type="text" value="<%= fmt(row.material_unit) %>" readonly />
+              </td>
+              <td class="col-ma">
+                <input type="text" value="<%= fmt(row.material_amount) %>" readonly />
+              </td>
+
+              <td class="col-lu">
+                <input type="text" value="<%= fmt(row.labor_unit) %>" readonly />
+              </td>
+              <td class="col-la">
+                <input type="text" value="<%= fmt(row.labor_amount) %>" readonly />
+              </td>
+
+              <td class="col-eu">
+                <input type="text" value="<%= fmt(row.expense_unit) %>" readonly />
+              </td>
+              <td class="col-ea">
+                <input type="text" value="<%= fmt(row.expense_amount) %>" readonly />
+              </td>
+
+              <td class="col-tu">
+                <input type="text" value="<%= fmt(row.total_unit) %>" readonly />
+              </td>
+              <td class="col-ta">
+                <input type="text" value="<%= fmt(row.total_amount) %>" readonly />
+              </td>
+
+              <td class="text-left col-note">
+                <input type="text" value="<%= row.note || "" %>" readonly />
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+
+        <!-- ✅ 합계 행 -->
+        <tfoot>
+          <tr class="total-row">
+            <td class="col-name total-label">합계</td>
+            <td class="col-spec"></td>
+            <td class="col-unit"></td>
+            <td class="col-qty"></td>
+
+            <td class="col-mu"></td>
+            <td class="col-ma">
+              <input type="text" value="<%= fmt(sumMaterialAmount) %>" readonly />
+            </td>
+
+            <td class="col-lu"></td>
+            <td class="col-la">
+              <input type="text" value="<%= fmt(sumLaborAmount) %>" readonly />
+            </td>
+
+            <td class="col-eu"></td>
+            <td class="col-ea">
+              <input type="text" value="<%= fmt(sumExpenseAmount) %>" readonly />
+            </td>
+
+            <td class="col-tu"></td>
+            <td class="col-ta">
+              <input type="text" value="<%= fmt(sumTotalAmount) %>" readonly />
+            </td>
+
+            <td class="col-note"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="actions">
+      <a href="/estimate" class="btn btn-outline">목록</a>
+      <a href="/estimate/<%= estimate.id %>/edit" class="btn">수정</a>
+      <button type="button" class="btn" onclick="window.print()">인쇄</button>
+      <button type="button" class="btn" onclick="window.location='/estimate/<%= estimate.id %>/excel'">
+        엑셀 다운로드
+      </button>
+    </div>
+  </div>
+</body>
+</html>

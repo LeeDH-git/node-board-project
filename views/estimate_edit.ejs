@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>견적 등록</title>
+  <style>
+    body { 
+     font-family: system-ui;
+     background: #f5f5f5;
+     margin: 0; 
+    }
+    /* 견적서 전체 프레임 */
+    .estimate-wrap {
+        max-width: 1450px;          /* 모니터에 따라 적당히 1200~1400 */
+        margin: 24px auto 40px;     /* 화면 기준 가운데 정렬 */
+        background: #ffffff;
+        padding: 20px 24px 28px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
+    h1 {  text-align: center; margin: 0 0 20px 0; }
+    .header-row {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .header-row label {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .header-row input[type="text"] {
+      width: 400px;
+      padding: 4px 6px;
+      border:1px solid #ccc;
+      border-radius:4px;
+      font-size:13px;
+    }
+    .header-input {
+     text-align: left !important;
+    }
+    table {
+     width: 100%;              /* 화면 너비 100% 사용 */
+     border-collapse: collapse;
+     font-size: 11px;          /* 살짝 줄여서 열 더 많이 넣기 */
+     table-layout: fixed;      /* 열 폭을 우리가 정한대로 고정 */
+    }
+
+    /* 공통 셀 스타일 */
+    th, td {
+     border: 1px solid #999;
+     padding: 3px 4px;
+     text-align: center;
+     vertical-align: middle;
+    }
+
+    /* 열별 폭 (합계 94%) */
+    th.col-name, td.col-name { width: 17%; }  /* 품명 */
+    th.col-spec, td.col-spec { width: 15%; }  /* 규격 */
+    th.col-unit, td.col-unit { width: 4%;  }  /* 단위 */
+    th.col-qty,  td.col-qty  { width: 5%;  }  /* 수량 */
+
+    /* 단가/금액 8칸 */
+    th.col-mu,  td.col-mu,
+    th.col-ma,  td.col-ma,
+    th.col-lu,  td.col-lu,
+    th.col-la,  td.col-la,
+    th.col-eu,  td.col-eu,
+    th.col-ea,  td.col-ea,
+    th.col-tu,  td.col-tu,
+    th.col-ta,  td.col-ta { width: 6%; }      /* 각각 6% (8칸 = 48%) */
+
+    th.col-note, td.col-note { width: 5%; }   /* 비고 */
+
+    /* input은 셀 안에서 꽉 차게 */
+     td input {
+     width: 100%;
+     box-sizing: border-box;
+     border: none;
+     padding: 1px 2px;
+     font-size: 11px;
+    }
+
+    /* 품명/규격은 왼쪽 정렬 */
+     td.col-name input,
+     td.col-spec input {
+     text-align: left;
+    }
+
+    /* 수량/단가/금액은 오른쪽 정렬 */
+     td.col-qty    input,
+     td.col-mu     input,
+     td.col-ma     input,
+     td.col-lu     input,
+     td.col-la     input,
+     td.col-eu     input,
+     td.col-ea     input,
+     td.col-tu     input,
+     td.col-ta     input {
+     text-align: right;
+    }
+    /* 합계 행 스타일 */
+    tr.total-row td {
+      font-weight: 700;      /* 숫자 굵게 */
+    }
+
+    /* 품명 칸 회색 배경 + 왼쪽 정렬 */
+    td.total-label {
+      background: #eeeeee;
+      text-align: left;
+    }
+    /* 금액/단가 칸 넓히기 */
+    /* td.amount-col input,
+        td.unit-col input {
+        width: 90px !important;
+        text-align: right;
+    } */
+
+    /* 테이블 전체 폭 확장 */
+    table {
+    width: 1400px;   /* 기존 1200px → 1400~1500px로 늘리면 안정적 */
+    }
+
+    /* 열별 기본 폭 보장
+    td.name-col input {
+    width: 200px !important;   
+    text-align: left;
+    }
+
+    td.spec-col input {
+    width: 160px !important;   
+    text-align: left;
+    } */
+
+    /*
+    td.unit-col input { 
+     width: 60px !important;    
+    } 
+    */
+
+    /* td.qty-col input {
+    width: 60px !important;    
+    text-align: right;
+    } */
+
+    /* 단가 칸
+    td.unitprice-col input {
+    width: 90px !important;
+    text-align: right;
+    } */
+
+    /* 금액 칸 */
+    /* td.amount-col input {
+    width: 120px !important;
+    text-align: right;
+    } */
+
+    /* 테이블이 화면보다 클 경우 스크롤 허용 */
+    /* .table-wrapper {
+    overflow-x: auto;
+    } */
+
+    thead th {
+      background: #ddebf7;
+      font-weight: 600;
+    }
+    .sub-header {
+      background: #ddebf7;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      border: none;
+      padding: 2px 4px;
+      font-size: 12px;
+      text-align: center;
+    }
+    input[readonly] {
+      background: #f7f7f7;
+    }
+    .text-left { text-align:left; }
+    .text-left input { text-align:left; }
+
+    .actions {
+      margin-top: 16px;
+      display:flex;
+      gap:8px;
+      justify-content: center;
+    }
+    .btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #007bff;
+      background: #007bff;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-outline {
+      background:#fff;
+      color:#007bff;
+    }
+    a { text-decoration:none; }
+  </style>
+</head>
+<body>
+  <% 
+    function fmt(n) {
+      if (n === null || n === undefined || n === "") return "";
+      const num = Number(n);
+      if (isNaN(num)) return n;     // 혹시 숫자가 아니면 원래 값 그대로
+      return num.toLocaleString("ko-KR");
+    }
+  %>
+  <div class="estimate-wrap">s
+  <h1>견 적 내 역 서 (수정)</h1>
+
+  <form action="/estimate/<%= estimate.id %>/edit" method="POST" id="estimate-form">
+    <div class="header-row">
+      <label for="title">공사명 :</label>
+      <input type="text" id="title" name="title" class="header-input" required
+       value="<%= estimate.title %>" />
+      &nbsp;&nbsp;
+      <label for="client_name">발주처 :</label>
+      <input type="text" id="client_name" name="client_name" class="header-input"
+       value="<%= estimate.client_name || "" %>" />    </div>
+    <div class="table-wrapper">
+    <table>
+      <thead>
+            <tr>
+                <th rowspan="2" class="col-name">품 명</th>
+                <th rowspan="2" class="col-spec">규 격</th>
+                <th rowspan="2" class="col-unit">단위</th>
+                <th rowspan="2" class="col-qty">수량</th>
+                <th colspan="2">재 료 비</th>
+                <th colspan="2">노 무 비</th>
+                <th colspan="2">경 비</th>
+                <th colspan="2">합 계</th>
+                <th rowspan="2" class="col-note">비 고</th>
+            </tr>
+            <tr class="sub-header">
+                <th class="col-mu">단가</th>
+                <th class="col-ma">금액</th>
+                <th class="col-lu">단가</th>
+                <th class="col-la">금액</th>
+                <th class="col-eu">단가</th>
+                <th class="col-ea">금액</th>
+                <th class="col-tu">단가</th>
+                <th class="col-ta">금액</th>
+            </tr>
+      </thead>
+
+      <tbody id="item-rows">
+        <% items.forEach(function(row, i) { %>
+            <tr>
+            <td class="text-left col-name">
+                <input type="text" name="items[<%= i %>][item_name]"
+                    value="<%= row.item_name || "" %>" />
+            </td>
+
+            <td class="text-left col-spec">
+                <input type="text" name="items[<%= i %>][spec]"
+                    value="<%= row.spec || "" %>" />
+            </td>
+
+            <td class="col-unit">
+                <input type="text" name="items[<%= i %>][unit]"
+                    value="<%= row.unit || "" %>" />
+            </td>
+
+            <td class="col-qty">
+              <input type="text" name="items[<%= i %>][qty]" class="qty"
+                value="<%= fmt(row.qty) %>" />
+            </td>
+
+            <td class="col-mu">
+              <input type="text" name="items[<%= i %>][material_unit]" class="material-unit"
+                value="<%= fmt(row.material_unit) %>" />
+            </td>
+            <td class="col-ma">
+              <input type="text" name="items[<%= i %>][material_amount]" class="material-amount" readonly
+                value="<%= fmt(row.material_amount) %>" />
+            </td>
+
+            <td class="col-lu">
+              <input type="text" name="items[<%= i %>][labor_unit]" class="labor-unit"
+                value="<%= fmt(row.labor_unit) %>" />
+            </td>
+            <td class="col-la">
+              <input type="text" name="items[<%= i %>][labor_amount]" class="labor-amount" readonly
+                value="<%= fmt(row.labor_amount) %>" />
+            </td>
+
+            <td class="col-eu">
+              <input type="text" name="items[<%= i %>][expense_unit]" class="expense-unit"
+                value="<%= fmt(row.expense_unit) %>" />
+            </td>
+            <td class="col-ea">
+              <input type="text" name="items[<%= i %>][expense_amount]" class="expense-amount" readonly
+                value="<%= fmt(row.expense_amount) %>" />
+            </td>
+
+            <td class="col-tu">
+              <input type="text" name="items[<%= i %>][total_unit]" class="total-unit" readonly
+                value="<%= fmt(row.total_unit) %>" />
+            </td>
+            <td class="col-ta">
+              <input type="text" name="items[<%= i %>][total_amount]" class="total-amount" readonly
+                value="<%= fmt(row.total_amount) %>" />
+            </td>
+
+            <td class="text-left col-note">
+                <input type="text" name="items[<%= i %>][note]"
+                    value="<%= row.note || "" %>" />
+            </td>
+            </tr>
+        <% }); %>
+        </tbody>
+          <!-- ✅ 합계 행 -->
+          <tfoot>
+            <tr class="total-row">
+              <td class="col-name total-label">합계</td>
+              <td class="col-spec"></td>
+              <td class="col-unit"></td>
+              <td class="col-qty"></td>
+
+              <td class="col-mu"></td>
+              <td class="col-ma">
+                <input type="text" class="total-material-sum" readonly />
+              </td>
+
+              <td class="col-lu"></td>
+              <td class="col-la">
+                <input type="text" class="total-labor-sum" readonly />
+              </td>
+
+              <td class="col-eu"></td>
+              <td class="col-ea">
+                <input type="text" class="total-expense-sum" readonly />
+              </td>
+
+              <td class="col-tu"></td>
+              <td class="col-ta">
+                <input type="text" class="total-all-sum" readonly />
+              </td>
+
+              <td class="col-note"></td>
+            </tr>
+          </tfoot>
+
+    </table>
+    </div>
+
+    <div class="actions">
+      <a href="/estimate" class="btn btn-outline">목록</a>
+      <button type="submit" class="btn">수정</button>
+    </div>
+  </form>
+ </div>
+
+  <script>
+    function uncomma(str) {
+        return String(str).replace(/[^\d.-]/g, "");
+    }
+
+    function formatNumberWithComma(num) {
+        if (num === "" || num === null || num === undefined) return "";
+        const n = parseFloat(num);
+        if (isNaN(n)) return "";
+        return n.toLocaleString("ko-KR");
+    }
+
+    function parseNumber(v) {
+        const n = parseFloat(uncomma(v));
+        return isNaN(n) ? 0 : n;
+    }
+
+    function recalcRow(tr) {
+        const qty = parseNumber(tr.querySelector(".qty")?.value);
+
+        const mu = parseNumber(tr.querySelector(".material-unit")?.value);
+        const lu = parseNumber(tr.querySelector(".labor-unit")?.value);
+        const eu = parseNumber(tr.querySelector(".expense-unit")?.value);
+
+        const materialAmountInput = tr.querySelector(".material-amount");
+        const laborAmountInput    = tr.querySelector(".labor-amount");
+        const expenseAmountInput  = tr.querySelector(".expense-amount");
+        const totalUnitInput      = tr.querySelector(".total-unit");
+        const totalAmountInput    = tr.querySelector(".total-amount");
+
+        const materialAmount = qty * mu;
+        const laborAmount    = qty * lu;
+        const expenseAmount  = qty * eu;
+        const totalUnit      = mu + lu + eu;
+        const totalAmount    = qty * totalUnit;
+
+        if (materialAmountInput) materialAmountInput.value = formatNumberWithComma(materialAmount);
+        if (laborAmountInput)    laborAmountInput.value    = formatNumberWithComma(laborAmount);
+        if (expenseAmountInput)  expenseAmountInput.value  = formatNumberWithComma(expenseAmount);
+        if (totalUnitInput)      totalUnitInput.value      = formatNumberWithComma(totalUnit);
+        if (totalAmountInput)    totalAmountInput.value    = formatNumberWithComma(totalAmount);
+        
+        // ✅ 행 계산 후 전체 합계 재계산
+        recalcTotals();
+    }
+
+    // 입력 시 콤마 + 재계산
+    document.addEventListener("input", function (e) {
+        const t = e.target;
+
+        if (
+        t.classList.contains("qty") ||
+        t.classList.contains("material-unit") ||
+        t.classList.contains("labor-unit") ||
+        t.classList.contains("expense-unit")
+        ) {
+        const raw = uncomma(t.value);
+        t.value = formatNumberWithComma(raw);
+
+        const tr = t.closest("tr");
+        if (tr) recalcRow(tr);
+        }
+    });
+
+    // 전송 전에 콤마 제거해서 숫자만 서버로 보내기
+    document.getElementById("estimate-form").addEventListener("submit", function () {
+        document.querySelectorAll(".qty, .material-unit, .material-amount, .labor-unit, .labor-amount, .expense-unit, .expense-amount, .total-unit, .total-amount")
+        .forEach((el) => {
+            el.value = uncomma(el.value);
+        });
+
+        // 모든 텍스트 input trim
+        document.querySelectorAll("input[type='text']").forEach((el) => {
+        el.value = el.value.trim();
+        });
+    });
+
+    // 모든 text input에 대해 앞뒤 공백 자동 제거
+    document.addEventListener("input", function (e) {
+        const t = e.target;
+  
+    // 숫자 입력칸은 제외하고 text 칸만 trim
+    if (
+        t.tagName === "INPUT" &&
+        t.type === "text" &&
+        !t.classList.contains("qty") &&
+        !t.classList.contains("material-unit") &&
+        !t.classList.contains("labor-unit") &&
+        !t.classList.contains("expense-unit")
+    ) {
+        t.value = t.value.trimStart(); // 앞 공백 제거 (뒤 공백은 입력 후 제거)
+    }
+    });
+        // 전체 합계 계산 함수
+        function recalcTotals() {
+        let sumMaterial = 0;
+        let sumLabor = 0;
+        let sumExpense = 0;
+        let sumTotal = 0;
+
+        document.querySelectorAll("#item-rows tr").forEach((tr) => {
+            const ma = parseNumber(tr.querySelector(".material-amount")?.value);
+            const la = parseNumber(tr.querySelector(".labor-amount")?.value);
+            const ea = parseNumber(tr.querySelector(".expense-amount")?.value);
+            const ta = parseNumber(tr.querySelector(".total-amount")?.value);
+
+            sumMaterial += ma;
+            sumLabor    += la;
+            sumExpense  += ea;
+            sumTotal    += ta;
+        });
+
+        const materialSumInput = document.querySelector(".total-material-sum");
+        const laborSumInput    = document.querySelector(".total-labor-sum");
+        const expenseSumInput  = document.querySelector(".total-expense-sum");
+        const totalSumInput    = document.querySelector(".total-all-sum");
+
+        if (materialSumInput) materialSumInput.value = formatNumberWithComma(sumMaterial);
+        if (laborSumInput)    laborSumInput.value    = formatNumberWithComma(sumLabor);
+        if (expenseSumInput)  expenseSumInput.value  = formatNumberWithComma(sumExpense);
+        if (totalSumInput)    totalSumInput.value    = formatNumberWithComma(sumTotal);
+    }
+    
+    // 페이지 로드시 초기 합계 계산
+    recalcTotals();
+</script>
+
+</body>
+</html>
