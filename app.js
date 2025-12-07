@@ -22,6 +22,63 @@ app.use(express.urlencoded({ extended: true }));
 // (옵션) 정적 파일 서빙하려면 이거 주석 해제
 app.use(express.static(path.join(__dirname, "public")));
 
+// ==============================================
+// 공통 유틸 함수 (뉴비용 헬퍼)
+// ==============================================
+
+// 숫자 파싱 헬퍼 (파싱 실패 시 기본값 사용)
+function toInt(value, defaultValue = 0) {
+  const parsed = parseInt(value);
+  return Number.isNaN(parsed) ? defaultValue : parsed;
+}
+
+function toFloat(value, defaultValue = 0) {
+  const parsed = parseFloat(value);
+  return Number.isNaN(parsed) ? defaultValue : parsed;
+}
+
+// id 파싱 헬퍼
+function parseId(param) {
+  return parseInt(param, 10);
+}
+
+// form으로 받은 items를 항상 배열 형태로 맞추기
+function normalizeItems(items) {
+  if (!items) return [];
+  return Array.isArray(items) ? items : Object.values(items);
+}
+
+// 전체 견적 금액 계산
+function calculateEstimateTotalAmount(items) {
+  return items.reduce((sum, item) => {
+    return sum + (toInt(item.total_amount) || 0);
+  }, 0);
+}
+
+// 수정 화면용: 정해진 행 수만큼 채우기
+function fillItemsForEditView(items, rowCount) {
+  const filled = [];
+  for (let i = 0; i < rowCount; i++) {
+    filled.push(
+      items[i] || {
+        item_name: "",
+        spec: "",
+        unit: "",
+        qty: "",
+        material_unit: "",
+        material_amount: "",
+        labor_unit: "",
+        labor_amount: "",
+        expense_unit: "",
+        expense_amount: "",
+        total_unit: "",
+        total_amount: "",
+        note: "",
+      }
+    );
+  }
+  return filled;
+}
 
 // ==============================================
 // DB Prepare (SQL 문 미리 준비)
@@ -75,7 +132,6 @@ const deleteEstimateHeader = db.prepare(`
   DELETE FROM estimates WHERE id = ?
 `);
 
-
 // ==============================================
 // Transactions (여러 쿼리를 하나의 트랜잭션으로 묶기)
 // ==============================================
@@ -101,23 +157,24 @@ const createEstimateTx = db.transaction((header, items) => {
       !item.unit &&
       !item.qty &&
       !item.total_amount
-    ) return;
+    )
+      return;
 
     insertEstimateItem.run(
-      estimateId,            // 방금 생성한 견적 id
-      idx + 1,               // row_no (1부터 시작)
+      estimateId, // 방금 생성한 견적 id
+      idx + 1, // row_no (1부터 시작)
       item.item_name || null,
       item.spec || null,
       item.unit || null,
-      parseFloat(item.qty) || 0,
-      parseInt(item.material_unit) || 0,
-      parseInt(item.material_amount) || 0,
-      parseInt(item.labor_unit) || 0,
-      parseInt(item.labor_amount) || 0,
-      parseInt(item.expense_unit) || 0,
-      parseInt(item.expense_amount) || 0,
-      parseInt(item.total_unit) || 0,
-      parseInt(item.total_amount) || 0,
+      toFloat(item.qty) || 0,
+      toInt(item.material_unit) || 0,
+      toInt(item.material_amount) || 0,
+      toInt(item.labor_unit) || 0,
+      toInt(item.labor_amount) || 0,
+      toInt(item.expense_unit) || 0,
+      toInt(item.expense_amount) || 0,
+      toInt(item.total_unit) || 0,
+      toInt(item.total_amount) || 0,
       item.note || null
     );
   });
@@ -147,23 +204,24 @@ const updateEstimateTx = db.transaction((id, header, items) => {
       !item.unit &&
       !item.qty &&
       !item.total_amount
-    ) return;
+    )
+      return;
 
     insertEstimateItem.run(
-      id,                    // 수정 대상 견적 id
+      id, // 수정 대상 견적 id
       idx + 1,
       item.item_name || null,
       item.spec || null,
       item.unit || null,
-      parseFloat(item.qty) || 0,
-      parseInt(item.material_unit) || 0,
-      parseInt(item.material_amount) || 0,
-      parseInt(item.labor_unit) || 0,
-      parseInt(item.labor_amount) || 0,
-      parseInt(item.expense_unit) || 0,
-      parseInt(item.expense_amount) || 0,
-      parseInt(item.total_unit) || 0,
-      parseInt(item.total_amount) || 0,
+      toFloat(item.qty) || 0,
+      toInt(item.material_unit) || 0,
+      toInt(item.material_amount) || 0,
+      toInt(item.labor_unit) || 0,
+      toInt(item.labor_amount) || 0,
+      toInt(item.expense_unit) || 0,
+      toInt(item.expense_amount) || 0,
+      toInt(item.total_unit) || 0,
+      toInt(item.total_amount) || 0,
       item.note || null
     );
   });
@@ -219,12 +277,11 @@ const deleteEstimateTx = db.transaction((id) => {
   deleteEstimateHeader.run(id);
 });
 
-
 // ==============================================
 // 견적서 엑셀 파일 다운로드 라우트
 // ==============================================
 app.get("/estimate/:id/excel", async (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseId(req.params.id);
   const estimate = getEstimate.get(id);
   const items = getEstimateItems.all(id);
 
@@ -236,7 +293,10 @@ app.get("/estimate/:id/excel", async (req, res) => {
   // ===== 공통 스타일 =====
   const thinBorder = { style: "thin", color: { argb: "FF999999" } };
   const allBorder = {
-    top: thinBorder, left: thinBorder, bottom: thinBorder, right: thinBorder
+    top: thinBorder,
+    left: thinBorder,
+    bottom: thinBorder,
+    right: thinBorder,
   };
 
   // ============================================
@@ -245,8 +305,8 @@ app.get("/estimate/:id/excel", async (req, res) => {
   sheet.columns = [
     { width: 22 }, // 품명
     { width: 16 }, // 규격
-    { width: 7 },  // 단위
-    { width: 7 },  // 수량
+    { width: 7 }, // 단위
+    { width: 7 }, // 수량
 
     { width: 10 }, // 재료 단가
     { width: 14 }, // 재료 금액
@@ -268,7 +328,10 @@ app.get("/estimate/:id/excel", async (req, res) => {
   // =========================
   sheet.mergeCells("A1:N1");
   sheet.getCell("A1").value = "견    적    내    역    서";
-  sheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
+  sheet.getCell("A1").alignment = {
+    horizontal: "center",
+    vertical: "middle",
+  };
   sheet.getCell("A1").font = { size: 18, bold: true };
 
   // ⭐ 제목 행 높이 조정
@@ -293,18 +356,35 @@ app.get("/estimate/:id/excel", async (req, res) => {
   // 3. 헤더 만들기
   // =========================
   const headerRow1 = [
-    "품명", "규격", "단위", "수량",
-    "재료비", "", "노무비", "", "경비", "", "합계", "",
-    "비고"
+    "품명",
+    "규격",
+    "단위",
+    "수량",
+    "재료비",
+    "",
+    "노무비",
+    "",
+    "경비",
+    "",
+    "합계",
+    "",
+    "비고",
   ];
 
   const headerRow2 = [
-    "", "", "", "",
-    "단가", "금액",
-    "단가", "금액",
-    "단가", "금액",
-    "단가", "금액",
-    ""
+    "",
+    "",
+    "",
+    "",
+    "단가",
+    "금액",
+    "단가",
+    "금액",
+    "단가",
+    "금액",
+    "단가",
+    "금액",
+    "",
   ];
 
   sheet.addRow([]);
@@ -334,34 +414,32 @@ app.get("/estimate/:id/excel", async (req, res) => {
       cell.alignment = { horizontal: "center", vertical: "middle" };
       cell.font = { bold: true };
       cell.border = allBorder;
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDEEAF6" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFDEEAF6" },
+      };
     });
   });
 
   // =========================
   // 4. 본문 데이터 입력
   // =========================
-
   items.forEach((item) => {
     const row = sheet.addRow([
       item.item_name,
       item.spec,
       item.unit,
       item.qty,
-
       item.material_unit,
       item.material_amount,
-
       item.labor_unit,
       item.labor_amount,
-
       item.expense_unit,
       item.expense_amount,
-
       item.total_unit,
       item.total_amount,
-
-      item.note
+      item.note,
     ]);
 
     // ⭐ 본문 행 높이 고정
@@ -373,7 +451,7 @@ app.get("/estimate/:id/excel", async (req, res) => {
       // 숫자 정렬 및 숫자 포맷 (#,###)
       if (colNum >= 5 && colNum <= 12 && !isNaN(cell.value)) {
         cell.alignment = { horizontal: "right", vertical: "middle" };
-        cell.numFmt = "#,###";   // ⭐ 숫자 콤마 적용
+        cell.numFmt = "#,###"; // ⭐ 숫자 콤마 적용
       } else {
         cell.alignment = { horizontal: "left", vertical: "middle" };
       }
@@ -383,17 +461,31 @@ app.get("/estimate/:id/excel", async (req, res) => {
   // =========================
   // 5. 합계 행
   // =========================
-  const sumMaterial = items.reduce((a, b) => a + (b.material_amount || 0), 0);
-  const sumLabor    = items.reduce((a, b) => a + (b.labor_amount || 0), 0);
-  const sumExpense  = items.reduce((a, b) => a + (b.expense_amount || 0), 0);
-  const sumTotal    = items.reduce((a, b) => a + (b.total_amount || 0), 0);
+  const sumMaterial = items.reduce(
+    (a, b) => a + (b.material_amount || 0),
+    0
+  );
+  const sumLabor = items.reduce((a, b) => a + (b.labor_amount || 0), 0);
+  const sumExpense = items.reduce(
+    (a, b) => a + (b.expense_amount || 0),
+    0
+  );
+  const sumTotal = items.reduce((a, b) => a + (b.total_amount || 0), 0);
 
   const sumRow = sheet.addRow([
-    "합계", "", "", "", "", sumMaterial,
-    "", sumLabor,
-    "", sumExpense,
-    "", sumTotal,
-    ""
+    "합계",
+    "",
+    "",
+    "",
+    "",
+    sumMaterial,
+    "",
+    sumLabor,
+    "",
+    sumExpense,
+    "",
+    sumTotal,
+    "",
   ]);
 
   // ⭐ 합계 행 높이
@@ -403,14 +495,20 @@ app.get("/estimate/:id/excel", async (req, res) => {
     cell.border = allBorder;
     cell.font = { bold: true };
     cell.alignment = { horizontal: "right" };
-    cell.numFmt = "#,###";  // ⭐ 콤마 자동 적용
+    cell.numFmt = "#,###"; // ⭐ 콤마 자동 적용
   });
 
   // =========================
   // 7. 파일 다운로드
   // =========================
-  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", `attachment; filename=estimate_${id}.xlsx`);
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=estimate_${id}.xlsx`
+  );
 
   await workbook.xlsx.write(res);
   res.end();
@@ -420,9 +518,8 @@ app.get("/estimate/:id/excel", async (req, res) => {
 // 메인 화면
 // ==============================================
 app.get("/", (req, res) => {
-  res.render("index");  // views/index.ejs 렌더링
+  res.render("index"); // views/index.ejs 렌더링
 });
-
 
 // ==============================================
 // 1. 견적관리 관련 라우트
@@ -430,9 +527,9 @@ app.get("/", (req, res) => {
 
 // ▷ 견적 목록 + 검색 + 페이징
 app.get("/estimate", (req, res) => {
-  const perPage = 16;                         // 한 페이지당 18개
-  const rawPage = parseInt(req.query.page || "1", 10);
-  let page = isNaN(rawPage) ? 1 : rawPage;    // 현재 페이지
+  const perPage = 16; // 한 페이지당 18개
+  const rawPage = parseId(req.query.page || "1");
+  let page = Number.isNaN(rawPage) ? 1 : rawPage; // 현재 페이지
   const searchQuery = (req.query.q || "").trim(); // 검색어 (견적명)
 
   // 검색어가 있으면 title LIKE '%검색어%' 로 조회
@@ -453,10 +550,9 @@ app.get("/estimate", (req, res) => {
     OFFSET ?
   `);
 
-  const totalCount = countStmt.get(keyword).cnt;         // 총 개수
-  const totalPages = totalCount > 0
-    ? Math.ceil(totalCount / perPage)
-    : 1;
+  const totalCount = countStmt.get(keyword).cnt; // 총 개수
+  const totalPages =
+    totalCount > 0 ? Math.ceil(totalCount / perPage) : 1;
 
   if (page < 1) page = 1;
   if (page > totalPages) page = totalPages;
@@ -470,7 +566,7 @@ app.get("/estimate", (req, res) => {
   const startNumber = totalCount - offset;
   const estimates = rows.map((e, idx) => ({
     ...e,
-    row_no: startNumber - idx,   // 화면에 보이는 "번호"
+    row_no: startNumber - idx, // 화면에 보이는 "번호"
   }));
 
   res.render("estimate_list", {
@@ -485,24 +581,19 @@ app.get("/estimate", (req, res) => {
 
 // ▷ 견적 신규 입력 폼
 app.get("/estimate/new", (req, res) => {
-  res.render("estimate_new");  // 신규 작성용 양식
+  res.render("estimate_new"); // 신규 작성용 양식
 });
 
 // ▷ 견적 신규 저장 처리
 app.post("/estimate", (req, res) => {
   const { title, client_name } = req.body;
-  let items = req.body.items || [];
+  const items = normalizeItems(req.body.items);
 
   // 제목은 필수
   if (!title) return res.send("견적명은 필수입니다.");
 
-  // items가 객체 형태일 수도 있어서 배열로 변환
-  if (!Array.isArray(items)) items = Object.values(items);
-
   // 전체 견적금액 = 각 행의 total_amount 합계
-  const totalAmount = items.reduce((sum, item) => {
-    return sum + (parseInt(item.total_amount) || 0);
-  }, 0);
+  const totalAmount = calculateEstimateTotalAmount(items);
 
   // 트랜잭션으로 헤더 + 상세행 저장
   createEstimateTx(
@@ -516,7 +607,7 @@ app.post("/estimate", (req, res) => {
 
 // ▷ 견적 수정 폼
 app.get("/estimate/:id/edit", (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseId(req.params.id);
 
   // 헤더 조회
   const estimate = getEstimate.get(id);
@@ -528,47 +619,26 @@ app.get("/estimate/:id/edit", (req, res) => {
   // 화면에서 15행을 고정으로 사용하므로
   // 부족한 부분은 빈 행 객체를 채워서 넘김
   const rowCount = 15;
-  const filled = [];
-  for (let i = 0; i < rowCount; i++) {
-    filled.push(items[i] || {
-      item_name: "",
-      spec: "",
-      unit: "",
-      qty: "",
-      material_unit: "",
-      material_amount: "",
-      labor_unit: "",
-      labor_amount: "",
-      expense_unit: "",
-      expense_amount: "",
-      total_unit: "",
-      total_amount: "",
-      note: ""
-    });
-  }
+  const filled = fillItemsForEditView(items, rowCount);
 
   res.render("estimate_edit", { estimate, items: filled });
 });
 
 // ▷ 견적 수정 저장 처리
 app.post("/estimate/:id/edit", (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseId(req.params.id);
 
   // 기존 견적 존재 여부 확인
   const estimate = getEstimate.get(id);
   if (!estimate) return res.status(404).send("존재하지 않는 견적입니다.");
 
   const { title, client_name } = req.body;
-  let items = req.body.items || [];
+  const items = normalizeItems(req.body.items);
 
   if (!title) return res.send("견적명은 필수입니다.");
 
-  if (!Array.isArray(items)) items = Object.values(items);
-
   // 전체 견적금액 재계산
-  const totalAmount = items.reduce((sum, item) => {
-    return sum + (parseInt(item.total_amount) || 0);
-  }, 0);
+  const totalAmount = calculateEstimateTotalAmount(items);
 
   // 트랜잭션으로 헤더/상세 갱신
   updateEstimateTx(
@@ -583,7 +653,7 @@ app.post("/estimate/:id/edit", (req, res) => {
 // ▷ 견적 복사 처리
 // - confirm → fetch POST 요청을 받는 라우트
 app.post("/estimate/:id/copy", (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseId(req.params.id);
   try {
     // 복사만 수행
     copyEstimateTx(id);
@@ -599,7 +669,7 @@ app.post("/estimate/:id/copy", (req, res) => {
 // ▷ 견적 삭제 처리
 // - confirm → fetch POST 요청을 받는 라우트
 app.post("/estimate/:id/delete", (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseId(req.params.id);
   try {
     // 트랜잭션으로 상세행 + 헤더 삭제
     deleteEstimateTx(id);
@@ -614,7 +684,7 @@ app.post("/estimate/:id/delete", (req, res) => {
 // ▷ 견적 상세(읽기 전용 화면)
 // - 목록에서 제목 클릭 시 이동
 app.get("/estimate/:id", (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseId(req.params.id);
 
   // 헤더 조회
   const estimate = getEstimate.get(id);
@@ -626,7 +696,6 @@ app.get("/estimate/:id", (req, res) => {
   // 읽기 전용 템플릿에 데이터 전달
   res.render("estimate_show", { estimate, items });
 });
-
 
 // ==============================================
 // 서버 시작
