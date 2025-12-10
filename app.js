@@ -22,6 +22,35 @@ app.use(express.urlencoded({ extended: true }));
 // (옵션) 정적 파일 서빙하려면 이거 주석 해제
 app.use(express.static(path.join(__dirname, "public")));
 
+// 업로드된 PDF 파일 서빙
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+/* PDF 업로드 multer 설정 */
+const multer = require("multer");
+
+const contractStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "uploads", "contracts"));
+  },
+  filename: (req, file, cb) => {
+    const time = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `${time}${ext}`);
+  },
+});
+
+const uploadContractPdf = multer({
+  storage: contractStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== "application/pdf") {
+      return cb(new Error("PDF 파일만 업로드 가능합니다."));
+    }
+    cb(null, true);
+  },
+});
+
+
 // ==============================================
 // 공통 유틸 함수 (뉴비용 헬퍼)
 // ==============================================
@@ -522,7 +551,7 @@ app.get("/", (req, res) => {
 });
 
 // ==============================================
-// 1. 견적관리 관련 라우트
+// 견적관리 관련 라우트
 // ==============================================
 
 // ▷ 견적 목록 + 검색 + 페이징
@@ -696,6 +725,221 @@ app.get("/estimate/:id", (req, res) => {
   // 읽기 전용 템플릿에 데이터 전달
   res.render("estimate_show", { estimate, items });
 });
+
+// ==============================================
+// 계약관리 관련
+// ==============================================
+
+/* 계약관리용 DB Prepare */
+// INSERT
+const insertContract = db.prepare(`
+  INSERT INTO contracts (
+    estimate_id, contract_no, title, client_name, total_amount,
+    start_date, end_date, pdf_filename, body_text
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`);
+
+// SELECT (단건)
+const getContract = db.prepare(`
+  SELECT * FROM contracts WHERE id = ?
+`);
+
+// UPDATE
+const updateContract = db.prepare(`
+  UPDATE contracts
+  SET estimate_id = ?, contract_no = ?, title = ?, client_name = ?,
+      total_amount = ?, start_date = ?, end_date = ?,
+      pdf_filename = ?, body_text = ?
+  WHERE id = ?
+`);
+
+// DELETE
+const deleteContractStmt = db.prepare(`
+  DELETE FROM contracts WHERE id = ?
+`);
+
+/* 계약 트랜잭션 */
+
+// 신규 계약 생성
+const createContractTx = db.transaction((data) => {
+  const info = insertContract.run(
+    data.estimate_id || null,
+    data.contract_no || null,
+    data.title,
+    data.client_name || null,
+    data.total_amount || null,
+    data.start_date || null,
+    data.end_date || null,
+    data.pdf_filename || null,
+    data.body_text || null
+  );
+  return info.lastInsertRowid;
+});
+
+// 계약 수정
+const updateContractTx = db.transaction((id, data) => {
+  updateContract.run(
+    data.estimate_id || null,
+    data.contract_no || null,
+    data.title,
+    data.client_name || null,
+    data.total_amount || null,
+    data.start_date || null,
+    data.end_date || null,
+    data.pdf_filename || null,
+    data.body_text || null,
+    id
+  );
+});
+
+// 삭제
+const deleteContractTx = db.transaction((id) => {
+  deleteContractStmt.run(id);
+});
+
+/* 계약관리 라우트 */
+
+// 계약 목록 + 검색 + 페이징
+app.get("/contract", (req, res) => {
+  const perPage = 16;
+  const rawPage = parseId(req.query.page || "1");
+  const page = isNaN(rawPage) ? 1 : rawPage;
+  const keyword = `%${(req.query.q || "").trim()}%`;
+
+  const count = db.prepare(`
+    SELECT COUNT(*) AS cnt FROM contracts WHERE title LIKE ?
+  `).get(keyword).cnt;
+
+  const totalPages = Math.max(1, Math.ceil(count / perPage));
+  const offset = (page - 1) * perPage;
+
+  const rows = db.prepare(`
+    SELECT * FROM contracts
+    WHERE title LIKE ?
+    ORDER BY id DESC
+    LIMIT ? OFFSET ?
+  `).all(keyword, perPage, offset);
+
+  const startNumber = count - offset;
+  const contracts = rows.map((c, idx) => ({
+    ...c,
+    row_no: startNumber - idx
+  }));
+
+  res.render("contract_list", {
+    contracts,
+    currentPage: page,
+    totalPages,
+    searchQuery: req.query.q || "",
+    totalCount: count,
+    perPage
+  });
+});
+
+// 계약 신규 입력 폼
+app.get("/contract/new", (req, res) => {
+  res.render("contract_form", { contract: null });
+});
+
+// 계약 신규 저장 처리
+app.post(
+  "/contract",
+  uploadContractPdf.single("pdf"),
+  (req, res) => {
+    const file = req.file;
+    const {
+      estimate_id, contract_no, title, client_name,
+      total_amount, start_date, end_date, body_text
+    } = req.body;
+
+    if (!title) return res.send("계약명은 필수입니다.");
+    if (!file && !body_text) return res.send("PDF 또는 계약 내용을 입력해주세요.");
+
+    const pdf_filename = file ? file.filename : null;
+
+    createContractTx({
+      estimate_id,
+      contract_no,
+      title,
+      client_name,
+      total_amount: total_amount ? parseInt(total_amount) : null,
+      start_date,
+      end_date,
+      pdf_filename,
+      body_text
+    });
+
+    res.redirect("/contract");
+  }
+);
+
+// 계약 상세 보기
+app.get("/contract/:id", (req, res) => {
+  const id = parseId(req.params.id);
+  const contract = getContract.get(id);
+
+  if (!contract) return res.status(404).send("존재하지 않는 계약입니다.");
+
+  res.render("contract_show", { contract });
+});
+
+// 계약 수정 폼
+app.get("/contract/:id/edit", (req, res) => {
+  const id = parseId(req.params.id);
+  const contract = getContract.get(id);
+
+  if (!contract) return res.status(404).send("존재하지 않는 계약입니다.");
+
+  res.render("contract_form", { contract });
+});
+
+// 계약 수정 저장 처리
+app.post(
+  "/contract/:id/edit",
+  uploadContractPdf.single("pdf"),
+  (req, res) => {
+    const id = parseId(req.params.id);
+    const existing = getContract.get(id);
+    if (!existing) return res.status(404).send("존재하지 않는 계약입니다.");
+
+    const {
+      estimate_id, contract_no, title, client_name,
+      total_amount, start_date, end_date, body_text
+    } = req.body;
+
+    let pdf_filename = existing.pdf_filename;
+    if (req.file) {
+      pdf_filename = req.file.filename;
+    }
+
+    if (!pdf_filename && !body_text)
+      return res.send("PDF 또는 계약 내용을 입력해주세요.");
+
+    updateContractTx(id, {
+      estimate_id,
+      contract_no,
+      title,
+      client_name,
+      total_amount,
+      start_date,
+      end_date,
+      pdf_filename,
+      body_text
+    });
+
+    res.redirect("/contract");
+  }
+);
+
+// 계약 삭제 처리
+app.post("/contract/:id/delete", (req, res) => {
+  const id = parseId(req.params.id);
+  deleteContractTx(id);
+  res.redirect("/contract");
+});
+
+
 
 // ==============================================
 // 서버 시작

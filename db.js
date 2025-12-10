@@ -45,13 +45,15 @@ db.exec(`
   -- 계약 테이블 (견적과 연결)
   CREATE TABLE IF NOT EXISTS contracts (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    estimate_id    INTEGER,              -- 어떤 견적에서 나온 계약인지
+    estimate_id    INTEGER,              -- 어떤 견적에서 나온 계약인지 (옵션)
     contract_no    TEXT,                 -- 계약번호
-    title          TEXT NOT NULL,        -- 계약명(공사명)
+    title          TEXT NOT NULL,        -- 계약명
     client_name    TEXT,                 -- 발주처
     total_amount   INTEGER,              -- 계약 금액
     start_date     TEXT,                 -- 착공일
     end_date       TEXT,                 -- 준공일
+    pdf_filename   TEXT,                 -- 업로드된 계약서 PDF 파일 이름
+    body_text      TEXT,                 -- 수기로 작성한 계약서 내용
     created_at     TEXT DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE SET NULL
   );
@@ -91,6 +93,7 @@ db.exec(`
     FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
     FOREIGN KEY (staff_id)    REFERENCES staff(id)    ON DELETE CASCADE
   );
+
 `);
 
 module.exports = db;
