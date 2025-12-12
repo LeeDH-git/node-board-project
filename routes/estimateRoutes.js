@@ -1,9 +1,10 @@
 // routes/estimateRoutes.js
-
 const express = require("express");
-const ExcelJS = require("exceljs");
+
 const estimateService = require("../services/estimateService");
-const estimateRepo = require("../repositories/estimateRepository"); // 엑셀 다운로드용
+const estimateExcelService = require("../services/estimateExcelService");
+
+const estimateRepo = require("../repositories/estimateRepository"); // 엑셀 다운로드용(조회만)
 
 const router = express.Router();
 
@@ -46,9 +47,7 @@ router.post("/", (req, res) => {
 // 수정 폼
 router.get("/:id/edit", (req, res) => {
   const id = parseId(req.params.id);
-  const detail = estimateService.getEstimateDetail(id, {
-    fillRowCount: 15,
-  });
+  const detail = estimateService.getEstimateDetail(id, { fillRowCount: 15 });
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
 
   res.render("estimate_edit", detail);
@@ -96,16 +95,31 @@ router.get("/:id", (req, res) => {
   res.render("estimate_show", detail);
 });
 
-// 엑셀 다운로드 (이 부분은 Repo 직접 사용해도 되고,
-// 필요하면 Service 하나 더 만들어도 됩니다.)
+// 엑셀 다운로드
 router.get("/:id/excel", async (req, res) => {
   const id = parseId(req.params.id);
+
   const estimate = estimateRepo.findById(id);
-  const items = estimateRepo.findItemsByEstimateId(id);
   if (!estimate) return res.status(404).send("존재하지 않는 견적입니다.");
 
-  // (여기부터는 기존에 만들었던 ExcelJS 코드 그대로 복붙)
-  // ...
+  const items = estimateRepo.findItemsByEstimateId(id);
+
+  const workbook = await estimateExcelService.buildEstimateWorkbook(
+    estimate,
+    items
+  );
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=estimate_${id}.xlsx`
+  );
+
+  await workbook.xlsx.write(res);
+  res.end();
 });
 
 module.exports = router;
