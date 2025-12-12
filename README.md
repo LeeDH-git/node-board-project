@@ -3,11 +3,11 @@ NODE-BOARD-PROJECT
 ├─ db.js
 ├─ data.db
 ├─ routes
-│   ├─ estimateRoutes.js    // Controller
-│   └─ contractRoutes.js
+│  ├─ estimateRoutes.js        // Controller
+│  └─ contractRoutes.js
 ├─ services
-│   ├─ estimateService.js   // Service
-│   └─ contractService.js
+│  ├─ estimateService.js       // Service
+│  └─ contractService.js
 └─ repositories
-    ├─ estimateRepository.js // Repository
-    └─ contractRepository.js
+   ├─ estimateRepository.js    // Repository
+   └─ contractRepository.js
