@@ -15,3 +15,16 @@ NODE-BOARD-PROJECT
 └─ repositories
    ├─ estimateRepository.js    // Repository
    └─ contractRepository.js
+└─ view
+   ├─contract_form.ejs         // View
+   └─contract_list.ejs
+   └─contract_show.ejs
+   └─estimate_edit.ejs
+   └─estimate_list.ejs
+   └─estimate_new.ejs
+   └─estimate_show.ejs
+   └─index.ejs
+   └─layout.ejs
+   └─new.ejs
+   └─show.ejs
+
