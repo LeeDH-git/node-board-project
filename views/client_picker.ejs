@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>거래처 선택</title>
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      cursor: pointer;
+    }
+    tr:hover {
+      background: #eef5ff;
+    }
+    input {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+<h3>거래처 선택</h3>
+
+<input id="q" placeholder="거래처명 검색" oninput="filter()" />
+
+<table id="tbl">
+  <thead>
+    <tr>
+      <th>거래처명</th>
+      <th>전화</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% clients.forEach(c => { %>
+      <tr onclick="selectClient(<%= c.id %>, '<%= c.name.replace(/'/g, "\\'") %>')">
+        <td><%= c.name %></td>
+        <td><%= c.phone || "" %></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<script>
+function selectClient(id, name) {
+  opener.document.getElementById("client_id").value = id;
+  opener.document.getElementById("client_name").value = name;
+  window.close();
+}
+
+function filter() {
+  const q = document.getElementById("q").value.toLowerCase();
+  document.querySelectorAll("#tbl tbody tr").forEach(tr => {
+    tr.style.display = tr.innerText.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+</script>
+
+</body>
+</html>

@@ -29,9 +29,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 신규 폼
+// 신규 폼 (통합 폼)
 router.get("/new", (req, res) => {
-  res.render("estimate_new");
+  const ROWS = 15;
+  res.render("estimate_form", {
+    mode: "create",
+    pageTitle: "견적 등록",
+    estimate: { title: "", client_name: "" },
+    items: Array.from({ length: ROWS }, () => ({})),
+  });
 });
 
 // 신규 저장
@@ -44,13 +50,17 @@ router.post("/", (req, res) => {
   }
 });
 
-// 수정 폼
+// 수정 폼 (통합 폼)
 router.get("/:id/edit", (req, res) => {
   const id = parseId(req.params.id);
   const detail = estimateService.getEstimateDetail(id, { fillRowCount: 15 });
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
 
-  res.render("estimate_edit", detail);
+  res.render("estimate_form", {
+    ...detail,
+    mode: "edit",
+    pageTitle: "견적 수정",
+  });
 });
 
 // 수정 저장
@@ -93,6 +103,16 @@ router.get("/:id", (req, res) => {
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
 
   res.render("estimate_show", detail);
+});
+
+//  인쇄 전용 페이지 (견적서만 출력)
+router.get("/:id/print", (req, res) => {
+  const id = parseId(req.params.id);
+  const detail = estimateService.getEstimateDetail(id);
+  if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
+
+  // 레이아웃 없는 독립 문서(견적서만) 렌더
+  res.render("estimate_print", detail);
 });
 
 // 엑셀 다운로드

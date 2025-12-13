@@ -1,4 +1,4 @@
-const db = require("../db");
+const db = require("../db"); // 당신 프로젝트의 db.js 방식 그대로
 
 function list({ q = "", page = 1, perPage = 16 }) {
   const kw = `%${q}%`;
@@ -26,10 +26,12 @@ function findById(id) {
 }
 
 function create(data) {
-  return db.prepare(`
+  const stmt = db.prepare(`
     INSERT INTO clients (name, biz_no, ceo_name, phone, email, address, memo)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `);
+
+  const info = stmt.run(
     data.name,
     data.biz_no || null,
     data.ceo_name || null,
@@ -37,14 +39,16 @@ function create(data) {
     data.email || null,
     data.address || null,
     data.memo || null
-  ).lastInsertRowid;
+  );
+
+  return info.lastInsertRowid;
 }
 
 function update(id, data) {
   db.prepare(`
     UPDATE clients
-    SET name=?, biz_no=?, ceo_name=?, phone=?, email=?, address=?, memo=?
-    WHERE id=?
+    SET name = ?, biz_no = ?, ceo_name = ?, phone = ?, email = ?, address = ?, memo = ?
+    WHERE id = ?
   `).run(
     data.name,
     data.biz_no || null,
@@ -58,19 +62,19 @@ function update(id, data) {
 }
 
 function remove(id) {
-  db.prepare(`DELETE FROM clients WHERE id=?`).run(id);
+  db.prepare(`DELETE FROM clients WHERE id = ?`).run(id);
 }
 
-/* ✅ 엑셀 대량 삽입 */
+// 일괄 거래처 등록
 function bulkInsert(list) {
-  const stmt = db.prepare(`
+  const insert = db.prepare(`
     INSERT INTO clients (name, biz_no, ceo_name, phone, email, address, memo)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const tx = db.transaction(rows => {
-    rows.forEach(r => {
-      stmt.run(
+  const tx = db.transaction((rows) => {
+    for (const r of rows) {
+      insert.run(
         r.name,
         r.biz_no || null,
         r.ceo_name || null,
@@ -79,17 +83,11 @@ function bulkInsert(list) {
         r.address || null,
         r.memo || null
       );
-    });
+    }
   });
 
   tx(list);
+  return { inserted: list.length };
 }
 
-module.exports = {
-  list,
-  findById,
-  create,
-  update,
-  remove,
-  bulkInsert,
-};
+module.exports = { list, findById, create, update, remove, bulkInsert };

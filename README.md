@@ -2,6 +2,8 @@
 
 ```text
 
+주소: https://github.com/LeeDH-git/node-board-project.git
+
 본 프로젝트는 Express + EJS + SQLite 기반의
 현장 관리 시스템으로, 다음과 같은 계층 구조를 따른다.
 

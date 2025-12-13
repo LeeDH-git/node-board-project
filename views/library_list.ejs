@@ -126,7 +126,17 @@
     text-decoration:none;
   }
   .btn-ghost:hover{ background: var(--bg); }
-
+  /* 버튼 공통 스타일 수정 */
+  .btn {
+    height: 36px;              /* 검색 input과 높이 통일 */
+    padding: 0 14px;
+    
+    display: inline-flex;      /* 버튼 글자를 가운데로 맞춤 세트 */
+    align-items: center;       /* 세로 중앙 */
+    justify-content: center;   /* 가로 중앙 */
+    
+    line-height: 1;            /* 글자 위로 뜨는 현상 방지 */
+  }
   .pagination{
     margin-top: 12px;
     display:flex;

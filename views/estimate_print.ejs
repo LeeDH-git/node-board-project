@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>견적서 인쇄</title>
+
+  <style>
+    /* ===== 화면 + 인쇄 공통 ===== */
+    body {
+      font-family: system-ui;
+      background: #fff;
+      margin: 0;
+    }
+
+    /* 🔥 상단 시스템 문구 완전 제거 (화면/인쇄 모두) */
+    header, nav, aside,
+    .sidebar, .app-sidebar,
+    .topbar, .app-header,
+    .brand, .logo, .site-title {
+      display: none !important;
+    }
+
+    .estimate-wrap {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 20px 24px 28px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 20px;
+    }
+
+    .header-row {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .header-row label {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .header-row input {
+      border: none;
+      background: transparent;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 3px 4px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    thead th {
+      background: #ddebf7;
+      font-weight: 600;
+    }
+
+    tr.total-row td {
+      font-weight: 700;
+    }
+
+    td.total-label {
+      background: #eeeeee;
+      text-align: left;
+    }
+
+    td input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 11px;
+    }
+
+    /* ===== 인쇄 전용 ===== */
+    @page {
+      size: A4 landscape;
+      margin: 12mm;
+    }
+
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      table, tr, td, th {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<%
+  function fmt(n) {
+    if (n === null || n === undefined || n === "") return "";
+    const num = Number(n);
+    if (isNaN(num)) return n;
+    return num.toLocaleString("ko-KR");
+  }
+
+  let sumMaterial = 0;
+  let sumLabor = 0;
+  let sumExpense = 0;
+  let sumTotal = 0;
+%>
+
+<div class="estimate-wrap">
+  <h1>견 적 내 역 서</h1>
+
+  <div class="header-row">
+    <label>공사명 :</label>
+    <input type="text" readonly value="<%= estimate.title %>" />
+    &nbsp;&nbsp;
+    <label>발주처 :</label>
+    <input type="text" readonly value="<%= estimate.client_name || '' %>" />
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="2">품명</th>
+        <th rowspan="2">규격</th>
+        <th rowspan="2">단위</th>
+        <th rowspan="2">수량</th>
+        <th colspan="2">재료비</th>
+        <th colspan="2">노무비</th>
+        <th colspan="2">경비</th>
+        <th colspan="2">합계</th>
+        <th rowspan="2">비고</th>
+      </tr>
+      <tr>
+        <th>단가</th><th>금액</th>
+        <th>단가</th><th>금액</th>
+        <th>단가</th><th>금액</th>
+        <th>단가</th><th>금액</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% items.forEach(row => {
+        sumMaterial += Number(row.material_amount || 0);
+        sumLabor += Number(row.labor_amount || 0);
+        sumExpense += Number(row.expense_amount || 0);
+        sumTotal += Number(row.total_amount || 0);
+      %>
+      <tr>
+        <td><%= row.item_name || "" %></td>
+        <td><%= row.spec || "" %></td>
+        <td><%= row.unit || "" %></td>
+        <td><%= fmt(row.qty) %></td>
+
+        <td><%= fmt(row.material_unit) %></td>
+        <td><%= fmt(row.material_amount) %></td>
+
+        <td><%= fmt(row.labor_unit) %></td>
+        <td><%= fmt(row.labor_amount) %></td>
+
+        <td><%= fmt(row.expense_unit) %></td>
+        <td><%= fmt(row.expense_amount) %></td>
+
+        <td><%= fmt(row.total_unit) %></td>
+        <td><%= fmt(row.total_amount) %></td>
+
+        <td><%= row.note || "" %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+
+    <tfoot>
+      <tr class="total-row">
+        <td class="total-label">합계</td>
+        <td colspan="4"></td>
+        <td><%= fmt(sumMaterial) %></td>
+        <td></td>
+        <td><%= fmt(sumLabor) %></td>
+        <td></td>
+        <td><%= fmt(sumExpense) %></td>
+        <td></td>
+        <td><%= fmt(sumTotal) %></td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script>
+  window.addEventListener("load", () => {
+    window.addEventListener("afterprint", () => window.close());
+    window.print();
+  });
+</script>
+
+</body>
+</html>

@@ -23,7 +23,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const estimateRouter = require("./routes/estimateRoutes");
 const contractRouter = require("./routes/contractRoutes");
 const libraryRouter = require("./routes/libraryRoutes");
-
+const clientRouter = require("./routes/clientRoutes");
 
 // 메인 화면
 app.get("/", (req, res) => {
@@ -32,15 +32,15 @@ app.get("/", (req, res) => {
     active: "home",
     headerTitle: "현장 관리 시스템",
     headerSub: "메뉴를 선택하세요",
-    headerAction: `<button class="btn btn-primary" onclick="location.href='/estimate'">Start</button>`
+    //headerAction: `<button class="btn btn-primary" onclick="location.href='/estimate'">Start</button>`
   });
 });
-
 
 // 도메인별 라우터 연결
 app.use("/estimate", estimateRouter);
 app.use("/contract", contractRouter);
 app.use("/library", libraryRouter);
+app.use("/client", clientRouter);
 
 // 서버 시작
 app.listen(PORT, () => {

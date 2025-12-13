@@ -14,7 +14,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS estimates (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     title         TEXT NOT NULL,          -- 견적명/공사명
-    client_name   TEXT,                   -- 발주처/거래처
+    client_name   TEXT,                   -- 발주처/거래처(문자열은 그대로 유지)
     total_amount  INTEGER,                -- 견적 금액
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   );
@@ -48,7 +48,7 @@ db.exec(`
     estimate_id    INTEGER,              -- 어떤 견적에서 나온 계약인지 (옵션)
     contract_no    TEXT,                 -- 계약번호
     title          TEXT NOT NULL,        -- 계약명
-    client_name    TEXT,                 -- 발주처
+    client_name    TEXT,                 -- 발주처(문자열은 그대로 유지)
     total_amount   INTEGER,              -- 계약 금액
     start_date     TEXT,                 -- 착공일
     end_date       TEXT,                 -- 준공일
@@ -94,6 +94,25 @@ db.exec(`
     FOREIGN KEY (staff_id)    REFERENCES staff(id)    ON DELETE CASCADE
   );
 
+  -- ✅ 거래처(발주처) 테이블
+  CREATE TABLE IF NOT EXISTS clients (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL,         -- 거래처명
+    biz_no        TEXT,                  -- 사업자번호
+    ceo_name      TEXT,                  -- 대표자
+    phone         TEXT,                  -- 전화
+    email         TEXT,                  -- 이메일
+    address       TEXT,                  -- 주소
+    memo          TEXT,                  -- 메모
+    created_at    TEXT DEFAULT (datetime('now','localtime'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
+  CREATE INDEX IF NOT EXISTS idx_clients_biz_no ON clients(biz_no);
 `);
+
+// ✅ 기존 DB를 사용하는 경우, 선택용 client_id 컬럼을 1회 추가(없으면 에러 → catch로 무시)
+try { db.prepare("ALTER TABLE estimates ADD COLUMN client_id INTEGER").run(); } catch (e) {}
+try { db.prepare("ALTER TABLE contracts ADD COLUMN client_id INTEGER").run(); } catch (e) {}
 
 module.exports = db;
