@@ -22,6 +22,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // 라우터 불러오기
 const estimateRouter = require("./routes/estimateRoutes");
 const contractRouter = require("./routes/contractRoutes");
+const libraryRouter = require("./routes/libraryRoutes");
+
 
 // 메인 화면
 app.get("/", (req, res) => {
@@ -38,6 +40,7 @@ app.get("/", (req, res) => {
 // 도메인별 라우터 연결
 app.use("/estimate", estimateRouter);
 app.use("/contract", contractRouter);
+app.use("/library", libraryRouter);
 
 // 서버 시작
 app.listen(PORT, () => {

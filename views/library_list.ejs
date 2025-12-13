@@ -1,0 +1,265 @@
+<style>
+  /* 계약관리 리스트(contract_list.ejs)와 동일한 테이블 톤 */
+  .page-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .page-head h2{
+    margin:0;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  .page-head .sub{
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .head-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap: wrap;
+    align-items:center;
+    justify-content:flex-end;
+  }
+
+  .search-form{
+    display:flex;
+    gap:8px;
+    flex-wrap: wrap;
+    align-items:center;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .search-form input[type="text"], .search-form select{
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+  .search-form input[type="text"]{
+    min-width: 260px;
+  }
+  .search-form input[type="text"]:focus, .search-form select:focus{
+    outline:none;
+    border-color: var(--text);
+    box-shadow: var(--ring);
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  table{
+    width:100%;
+    border-collapse: collapse;
+    min-width: 980px; /* 자료실도 파일명 등 컬럼이 있어 넉넉히 */
+  }
+
+  thead th{
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align:left;
+    white-space: nowrap;
+  }
+  tbody td{
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:hover{
+    background: var(--bg);
+  }
+
+  .text-right{ text-align:right; }
+  .text-center{ text-align:center; }
+
+  .link{
+    color: var(--text);
+    text-decoration:none;
+    font-weight: 600;
+  }
+  .link:hover{
+    text-decoration: underline;
+  }
+
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding: 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background:#fff;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .btn-ghost{
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12.5px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    white-space: nowrap;
+    text-decoration:none;
+  }
+  .btn-ghost:hover{ background: var(--bg); }
+
+  .pagination{
+    margin-top: 12px;
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    flex-wrap: wrap;
+  }
+  .page{
+    min-width: 30px;
+    height: 32px;
+    padding: 0 10px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background:#fff;
+    color: var(--text);
+    font-size: 12.5px;
+    text-decoration:none;
+  }
+  .page:hover{ background: var(--bg); }
+  .page.current{
+    background: var(--text);
+    border-color: var(--text);
+    color: #fff;
+    font-weight: 650;
+  }
+
+  @media (max-width: 520px){
+    .search-form input[type="text"]{ min-width: 0; width: 100%; }
+    .search-form select{ width: 100%; }
+  }
+</style>
+
+<div class="page-head">
+  <div>
+    <h2>서식 및 자료실</h2>
+    <div class="sub">서식/자료 업로드·검색·다운로드</div>
+  </div>
+
+  <div class="head-actions">
+    <a href="/library/new" class="btn btn-primary">자료 등록</a>
+  </div>
+
+  <form method="get" action="/library" class="search-form">
+    <select name="type">
+      <option value="all" <%= (type === 'all' || !type) ? 'selected' : '' %>>전체</option>
+      <option value="form" <%= type === 'form' ? 'selected' : '' %>>서식</option>
+      <option value="reference" <%= type === 'reference' ? 'selected' : '' %>>자료</option>
+      <option value="safety" <%= type === 'safety' ? 'selected' : '' %>>안전</option>
+      <option value="contract" <%= type === 'contract' ? 'selected' : '' %>>계약</option>
+    </select>
+
+    <input
+      type="text"
+      name="q"
+      placeholder="제목/카테고리/메모/파일명 검색"
+      value="<%= (typeof q !== 'undefined' ? q : '') %>"
+    />
+
+    <button class="btn" type="submit">검색</button>
+    <button class="btn" type="button" onclick="window.location.href='/library'">새로고침</button>
+  </form>
+</div>
+
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="text-center" style="width:70px;">No</th>
+        <th style="width:120px;">구분</th>
+        <th>제목</th>
+        <th style="width:170px;">카테고리</th>
+        <th style="width:260px;">파일</th>
+        <th class="text-right" style="width:110px;">용량</th>
+        <th class="text-center" style="width:130px;">등록일</th>
+        <th class="text-center" style="width:90px;">수정</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% if (docs && docs.length > 0) { %>
+        <% docs.forEach((d) => { %>
+          <tr>
+            <td class="text-center"><%= d.row_no %></td>
+
+            <td>
+              <span class="pill"><%= d.doc_type || '-' %></span>
+            </td>
+
+            <td>
+              <a class="link" href="/library/<%= d.id %>"><%= d.title %></a>
+            </td>
+
+            <td><%= d.category || '-' %></td>
+
+            <td><%= d.original_name || '-' %></td>
+
+            <td class="text-right">
+              <%= d.size ? Math.round(d.size / 1024) + ' KB' : '-' %>
+            </td>
+
+            <td class="text-center">
+              <%= (d.created_at || '').toString().slice(0,10) %>
+            </td>
+
+            <td class="text-center">
+              <a class="btn-ghost" href="/library/<%= d.id %>/edit">수정</a>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="8" class="text-center" style="color: var(--muted); padding: 18px;">
+            등록된 자료가 없습니다.
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<% if (totalPages && totalPages > 1) { %>
+  <div class="pagination" aria-label="Library pagination">
+    <% for (let p = 1; p <= totalPages; p++) { %>
+      <% if (p === currentPage) { %>
+        <span class="page current"><%= p %></span>
+      <% } else { %>
+        <a class="page" href="/library?page=<%= p %><%= type ? '&type=' + encodeURIComponent(type) : '' %><%= q ? '&q=' + encodeURIComponent(q) : '' %>">
+          <%= p %>
+        </a>
+      <% } %>
+    <% } %>
+  </div>
+<% } %>
