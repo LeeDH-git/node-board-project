@@ -1,95 +1,137 @@
+// repositories/contractRepository.js
 const db = require("../db");
 
-function list({ q = "", page = 1, perPage = 16 }) {
-  const kw = `%${q}%`;
-  const offset = (page - 1) * perPage;
-
-  const total = db.prepare(`
+/**
+ * 검색 카운트
+ * contractService에서 keywordLike(예: %키워드%)를 그대로 넘겨줍니다.
+ */
+function countByKeyword(keywordLike) {
+  const row = db.prepare(`
     SELECT COUNT(*) AS cnt
-    FROM clients
-    WHERE name LIKE ? OR biz_no LIKE ? OR phone LIKE ?
-  `).get(kw, kw, kw).cnt;
+    FROM contracts
+    WHERE title LIKE ?
+       OR contract_no LIKE ?
+       OR client_name LIKE ?
+  `).get(keywordLike, keywordLike, keywordLike);
 
-  const rows = db.prepare(`
-    SELECT *
-    FROM clients
-    WHERE name LIKE ? OR biz_no LIKE ? OR phone LIKE ?
+  return row ? row.cnt : 0;
+}
+
+/**
+ * 검색 + 페이징 목록
+ * contractService에서 (keywordLike, perPage, offset) 순으로 호출합니다.
+ */
+function findPagedByKeyword(keywordLike, limit, offset) {
+  return db.prepare(`
+    SELECT
+      id,
+      estimate_id,
+      contract_no,
+      title,
+      client_name,
+      total_amount,
+      start_date,
+      end_date,
+      pdf_filename,
+      body_text,
+      created_at
+    FROM contracts
+    WHERE title LIKE ?
+       OR contract_no LIKE ?
+       OR client_name LIKE ?
     ORDER BY id DESC
     LIMIT ? OFFSET ?
-  `).all(kw, kw, kw, perPage, offset);
-
-  return { total, rows };
+  `).all(keywordLike, keywordLike, keywordLike, limit, offset);
 }
 
 function findById(id) {
-  return db.prepare(`SELECT * FROM clients WHERE id = ?`).get(id);
-}
-
-function create(data) {
   return db.prepare(`
-    INSERT INTO clients (name, biz_no, ceo_name, phone, email, address, memo)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    data.name,
-    data.biz_no || null,
-    data.ceo_name || null,
-    data.phone || null,
-    data.email || null,
-    data.address || null,
-    data.memo || null
-  ).lastInsertRowid;
+    SELECT *
+    FROM contracts
+    WHERE id = ?
+  `).get(id);
 }
 
-function update(id, data) {
-  db.prepare(`
-    UPDATE clients
-    SET name=?, biz_no=?, ceo_name=?, phone=?, email=?, address=?, memo=?
-    WHERE id=?
-  `).run(
-    data.name,
-    data.biz_no || null,
-    data.ceo_name || null,
-    data.phone || null,
-    data.email || null,
-    data.address || null,
-    data.memo || null,
-    id
-  );
-}
+/**
+ * 생성(트랜잭션)
+ * created_at은 DB DEFAULT가 있으면 자동 생성됩니다.
+ */
+function createContractTx(data) {
+  const tx = db.transaction((d) => {
+    const result = db.prepare(`
+      INSERT INTO contracts
+        (estimate_id, contract_no, title, client_name, total_amount, start_date, end_date, pdf_filename, body_text)
+      VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      d.estimate_id ?? null,
+      d.contract_no ?? null,
+      d.title,
+      d.client_name ?? null,
+      d.total_amount ?? null,
+      d.start_date ?? null,
+      d.end_date ?? null,
+      d.pdf_filename ?? null,
+      d.body_text ?? null
+    );
 
-function remove(id) {
-  db.prepare(`DELETE FROM clients WHERE id=?`).run(id);
-}
-
-/* ✅ 엑셀 대량 삽입 */
-function bulkInsert(list) {
-  const stmt = db.prepare(`
-    INSERT INTO clients (name, biz_no, ceo_name, phone, email, address, memo)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const tx = db.transaction(rows => {
-    rows.forEach(r => {
-      stmt.run(
-        r.name,
-        r.biz_no || null,
-        r.ceo_name || null,
-        r.phone || null,
-        r.email || null,
-        r.address || null,
-        r.memo || null
-      );
-    });
+    return result.lastInsertRowid;
   });
 
-  tx(list);
+  return tx(data);
+}
+
+/**
+ * 수정(트랜잭션)
+ */
+function updateContractTx(id, data) {
+  const tx = db.transaction((contractId, d) => {
+    db.prepare(`
+      UPDATE contracts
+      SET
+        estimate_id   = ?,
+        contract_no   = ?,
+        title         = ?,
+        client_name   = ?,
+        total_amount  = ?,
+        start_date    = ?,
+        end_date      = ?,
+        pdf_filename  = ?,
+        body_text     = ?
+      WHERE id = ?
+    `).run(
+      d.estimate_id ?? null,
+      d.contract_no ?? null,
+      d.title,
+      d.client_name ?? null,
+      d.total_amount ?? null,
+      d.start_date ?? null,
+      d.end_date ?? null,
+      d.pdf_filename ?? null,
+      d.body_text ?? null,
+      contractId
+    );
+  });
+
+  tx(id, data);
+}
+
+/**
+ * 삭제(트랜잭션)
+ */
+function deleteContractTx(id) {
+  const tx = db.transaction((contractId) => {
+    db.prepare(`DELETE FROM contracts WHERE id = ?`).run(contractId);
+  });
+
+  tx(id);
 }
 
 module.exports = {
-  list,
+  countByKeyword,
+  findPagedByKeyword,
   findById,
-  create,
-  update,
-  remove,
-  bulkInsert,
+  createContractTx,
+  updateContractTx,
+  deleteContractTx,
 };
