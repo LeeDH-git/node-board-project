@@ -1,4 +1,4 @@
-## 2️⃣ README.md
+## README.md
 
 ```text
 NODE-BOARD-PROJECT
@@ -12,9 +12,9 @@ NODE-BOARD-PROJECT
 │  ├─ estimateService.js       // Service
 │  └─ contractService.js
 │  └─ estimateExcelService
-└─ repositories
-   ├─ estimateRepository.js    // Repository
-   └─ contractRepository.js
+├─ repositories
+│  ├─ estimateRepository.js    // Repository
+│  └─ contractRepository.js
 └─ view
    ├─contract_form.ejs         // View
    └─contract_list.ejs
@@ -27,4 +27,3 @@ NODE-BOARD-PROJECT
    └─layout.ejs
    └─new.ejs
    └─show.ejs
-

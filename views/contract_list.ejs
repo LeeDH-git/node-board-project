@@ -1,99 +1,243 @@
-<!-- 계약 목록 화면: /contract -->
+<style>
+  .page-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>계약 관리</h3>
-  <a href="/contract/new" class="btn btn-primary">신규 계약 등록</a>
+  .page-head h2{
+    margin:0;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  .page-head .sub{
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .head-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap: wrap;
+    align-items:center;
+    justify-content:flex-end;
+  }
+
+  .search-form{
+    display:flex;
+    gap:8px;
+    flex-wrap: wrap;
+    align-items:center;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .search-form input[type="text"]{
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    min-width: 260px;
+  }
+  .search-form input[type="text"]:focus{
+    outline:none;
+    border-color: var(--text);
+    box-shadow: var(--ring);
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  table{
+    width:100%;
+    border-collapse: collapse;
+    min-width: 980px; /* 계약은 컬럼이 많아서 넉넉히 */
+  }
+
+  thead th{
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align:left;
+    white-space: nowrap;
+  }
+  tbody td{
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:hover{
+    background: var(--bg);
+  }
+
+  .text-right{ text-align:right; }
+  .text-center{ text-align:center; }
+
+  .link{
+    color: var(--text);
+    text-decoration:none;
+    font-weight: 600;
+  }
+  .link:hover{
+    text-decoration: underline;
+  }
+
+  /* 작은 액션 버튼 */
+  .btn-ghost{
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12.5px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    white-space: nowrap;
+  }
+  .btn-ghost:hover{ background: var(--bg); }
+
+  .pagination{
+    margin-top: 12px;
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    flex-wrap: wrap;
+  }
+  .page{
+    min-width: 30px;
+    height: 32px;
+    padding: 0 10px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background:#fff;
+    color: var(--text);
+    font-size: 12.5px;
+    text-decoration:none;
+  }
+  .page:hover{ background: var(--bg); }
+  .page.current{
+    background: var(--text);
+    border-color: var(--text);
+    color: #fff;
+    font-weight: 650;
+  }
+
+  /* 모바일에서 검색 input이 너무 길면 */
+  @media (max-width: 520px){
+    .search-form input[type="text"]{ min-width: 0; width: 100%; }
+  }
+</style>
+
+<div class="page-head">
+  <div>
+    <h2>계약 관리</h2>
+    <div class="sub">하도급·자재·용역 계약서 관리</div>
+  </div>
+
+  <div class="head-actions">
+    <a href="/contract/new" class="btn btn-primary">신규 계약 등록</a>
+  </div>
+
+  <form method="get" action="/contract" class="search-form">
+    <input
+      type="text"
+      name="q"
+      placeholder="계약명으로 검색"
+      value="<%= (typeof searchQuery !== 'undefined' ? searchQuery : '') %>"
+    />
+    <button class="btn" type="submit">검색</button>
+    <button class="btn" type="button" onclick="window.location.href='/contract'">새로고침</button>
+  </form>
 </div>
 
-<form method="get" action="/contract" class="form-inline mb-3">
-  <input
-    type="text"
-    name="q"
-    class="form-control mr-2"
-    placeholder="계약명으로 검색"
-    value="<%= searchQuery || '' %>"
-  />
-  <button class="btn btn-outline-primary" type="submit">검색</button>
-</form>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="text-center" style="width:70px;">No</th>
+        <th style="width:140px;">계약번호</th>
+        <th>계약명</th>
+        <th style="width:160px;" class="text-center">발주처</th>
+        <th style="width:140px;" class="text-right">계약금액</th>
+        <th style="width:190px;" class="text-center">공사기간</th>
+        <th style="width:130px;" class="text-center">등록일</th>
+        <th style="width:90px;" class="text-center">수정</th>
+      </tr>
+    </thead>
 
-<table class="table table-striped table-hover table-sm">
-  <thead>
-    <tr>
-      <th class="text-center" style="width: 60px;">No</th>
-      <th style="width: 120px;">계약번호</th>
-      <th>계약명</th>
-      <th style="width: 140px;" class="text-center">발주처</th>
-      <th style="width: 140px;" class="text-right">계약금액</th>
-      <th style="width: 160px;" class="text-center">공사기간</th>
-      <th style="width: 140px;" class="text-center">등록일</th>
-      <th style="width: 80px;" class="text-center">수정</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% if (contracts && contracts.length > 0) { %>
-      <% contracts.forEach((c) => { %>
+    <tbody>
+      <% if (contracts && contracts.length > 0) { %>
+        <% contracts.forEach((c) => { %>
+          <tr>
+            <td class="text-center"><%= c.row_no %></td>
+
+            <td><%= c.contract_no || '' %></td>
+
+            <td>
+              <a class="link" href="/contract/<%= c.id %>"><%= c.title %></a>
+            </td>
+
+            <td class="text-center"><%= c.client_name || '' %></td>
+
+            <td class="text-right">
+              <%= c.total_amount ? c.total_amount.toLocaleString("ko-KR") : '' %>
+            </td>
+
+            <td class="text-center">
+              <% if (c.start_date || c.end_date) { %>
+                <%= c.start_date || '' %> ~ <%= c.end_date || '' %>
+              <% } else { %>
+                -
+              <% } %>
+            </td>
+
+            <td class="text-center"><%= c.created_at || '' %></td>
+
+            <td class="text-center">
+              <a href="/contract/<%= c.id %>/edit" class="btn-ghost">수정</a>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
         <tr>
-          <td class="text-center"><%= c.row_no %></td>
-
-          <!-- 계약번호 -->
-          <td><%= c.contract_no || '' %></td>
-
-          <!-- 계약명: 상세로 링크 -->
-          <td>
-            <a href="/contract/<%= c.id %>">
-              <%= c.title %>
-            </a>
-          </td>
-
-          <!-- 발주처 -->
-          <td class="text-center"><%= c.client_name || '' %></td>
-
-          <!-- 계약금액 -->
-          <td class="text-right">
-            <%= c.total_amount ? c.total_amount.toLocaleString("ko-KR") : '' %>
-          </td>
-
-          <!-- 공사기간 -->
-          <td class="text-center">
-            <% if (c.start_date || c.end_date) { %>
-              <%= c.start_date || '' %> ~ <%= c.end_date || '' %>
-            <% } else { %>
-              -
-            <% } %>
-          </td>
-
-          <!-- 등록일 -->
-          <td class="text-center"><%= c.created_at || '' %></td>
-
-          <!-- 수정 버튼 -->
-          <td class="text-center">
-            <a href="/contract/<%= c.id %>/edit" class="btn btn-sm btn-outline-secondary">
-              수정
-            </a>
+          <td colspan="8" class="text-center" style="color: var(--muted); padding: 18px;">
+            등록된 계약이 없습니다.
           </td>
         </tr>
-      <% }) %>
-    <% } else { %>
-      <tr>
-        <td colspan="8" class="text-center text-muted">
-          등록된 계약이 없습니다.
-        </td>
-      </tr>
-    <% } %>
-  </tbody>
-</table>
-
-<!-- 간단한 페이징 (필요 없으면 밑에 블럭 통째로 지워도 됨) -->
-<% if (totalPages && totalPages > 1) { %>
-  <nav aria-label="Contract pagination">
-    <ul class="pagination pagination-sm justify-content-center">
-      <% for (let p = 1; p <= totalPages; p++) { %>
-        <li class="page-item <%= p === currentPage ? 'active' : '' %>">
-          <a class="page-link" href="/contract?page=<%= p %>&q=<%= encodeURIComponent(searchQuery || '') %>">
-            <%= p %>
-          </a>
-        </li>
       <% } %>
-    </ul>
-  </nav>
+    </tbody>
+  </table>
+</div>
+
+<% if (totalPages && totalPages > 1) { %>
+  <div class="pagination" aria-label="Contract pagination">
+    <% for (let p = 1; p <= totalPages; p++) { %>
+      <% if (p === currentPage) { %>
+        <span class="page current"><%= p %></span>
+      <% } else { %>
+        <a class="page" href="/contract?page=<%= p %><%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>">
+          <%= p %>
+        </a>
+      <% } %>
+    <% } %>
+  </div>
 <% } %>
