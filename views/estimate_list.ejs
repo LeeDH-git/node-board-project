@@ -193,7 +193,8 @@
     <table>
       <thead>
         <tr>
-          <th style="width:70px;">번호</th>
+          <th style="width:60px;">No</th>
+          <th style="width:120px;">견적번호</th>
           <th>견적명</th>
           <th style="width:120px;">거래처</th>
           <th style="width:140px;" class="text-right">견적금액</th>
@@ -205,8 +206,8 @@
       <tbody>
         <% estimates.forEach((e) => { %>
           <tr>
-            <td class="text-center"><%= e.row_no %></td>
-
+           <td class="text-center"><%= e.row_no %></td>
+           <td class="text-center"><%= e.estimate_no %></td>
             <td>
               <a class="link" href="/estimate/<%= e.id %>"><%= e.title %></a>
             </td>

@@ -73,11 +73,20 @@
     text-align:left;
     white-space: nowrap;
   }
+  th:nth-child(6),
+  td:nth-child(6),
+  th:nth-child(7),
+  td:nth-child(7) {
+    min-width: 160px;
+  }
   tbody td{
     font-size: 13px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+  }
+  td.nowrap {
+    white-space: nowrap;
   }
   tbody tr:hover{
     background: var(--bg);
@@ -122,6 +131,15 @@
     justify-content: center;   /* 가로 중앙 */
 
     line-height: 1;            /* 글자 위로 뜨는 현상 방지 */
+  }
+  .page-header {
+    text-align: center;
+  }
+
+  .page-header h1,
+  .page-header p {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .pagination{
@@ -189,7 +207,7 @@
         <th style="width:140px;">계약번호</th>
         <th>계약명</th>
         <th style="width:160px;" class="text-center">발주처</th>
-        <th style="width:140px;" class="text-right">계약금액</th>
+        <th style="width:140px;" class="text-center">계약금액</th>
         <th style="width:190px;" class="text-center">공사기간</th>
         <th style="width:130px;" class="text-center">등록일</th>
         <th style="width:90px;" class="text-center">수정</th>
@@ -210,11 +228,11 @@
 
             <td class="text-center"><%= c.client_name || '' %></td>
 
-            <td class="text-right">
-              <%= c.total_amount ? c.total_amount.toLocaleString("ko-KR") : '' %>
+            <td class="text-center nowrap">
+              <%= c.total_amount ? c.total_amount.toLocaleString("ko-KR") : '' %> 원
             </td>
 
-            <td class="text-center">
+            <td class="text-center nowrap">
               <% if (c.start_date || c.end_date) { %>
                 <%= c.start_date || '' %> ~ <%= c.end_date || '' %>
               <% } else { %>
@@ -222,7 +240,9 @@
               <% } %>
             </td>
 
-            <td class="text-center"><%= c.created_at || '' %></td>
+            <td class="text-center nowrap">
+              <%= c.created_at ? c.created_at.substring(0, 10) : '' %>
+            </td>
 
             <td class="text-center">
               <a href="/contract/<%= c.id %>/edit" class="btn-ghost">수정</a>

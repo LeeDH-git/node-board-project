@@ -122,8 +122,12 @@ function createEstimateFromRequest(body) {
     );
   });
 
+  const year = new Date().getFullYear();
+  const estimate_no = estimateRepo.getNextEstimateNo(year);
+
   const id = estimateRepo.createEstimateTx(
     {
+      estimate_no, 
       title,
       client_name: client_name || null,
       total_amount: totalAmount,
@@ -133,8 +137,6 @@ function createEstimateFromRequest(body) {
 
   return id;
 }
-
-
 
 // 수정 저장
 function updateEstimateFromRequest(id, body) {

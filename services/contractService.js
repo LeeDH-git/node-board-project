@@ -1,6 +1,6 @@
 // services/contractService.js
-
 const contractRepo = require("../repositories/contractRepository");
+const progressRepo = require("../repositories/progressRepository");
 
 function toIntOrNull(value) {
   if (value === undefined || value === null || value === "") return null;
@@ -22,11 +22,7 @@ function listContracts(searchQuery, pageParam, perPage) {
 
   const offset = (currentPage - 1) * perPage;
 
-  const rows = contractRepo.findPagedByKeyword(
-    keywordLike,
-    perPage,
-    offset
-  );
+  const rows = contractRepo.findPagedByKeyword(keywordLike, perPage, offset);
 
   const startNumber = totalCount - offset;
   const contracts = rows.map((c, idx) => ({
@@ -58,13 +54,12 @@ function createContractFromRequest(body, file) {
   } = body;
 
   if (!title) throw new Error("계약명은 필수입니다.");
-  if (!file && !body_text)
-    throw new Error("PDF 또는 계약 내용을 입력해주세요.");
+  if (!file && !body_text) throw new Error("PDF 또는 계약 내용을 입력해주세요.");
 
   const pdf_filename = file ? file.filename : null;
 
   const id = contractRepo.createContractTx({
-    estimate_id,
+    estimate_id: toIntOrNull(estimate_id),
     contract_no,
     title,
     client_name,
@@ -97,15 +92,12 @@ function updateContractFromRequest(id, body, file) {
   if (!title) throw new Error("계약명은 필수입니다.");
 
   let pdf_filename = existing.pdf_filename;
-  if (file) {
-    pdf_filename = file.filename;
-  }
+  if (file) pdf_filename = file.filename;
 
-  if (!pdf_filename && !body_text)
-    throw new Error("PDF 또는 계약 내용을 입력해주세요.");
+  if (!pdf_filename && !body_text) throw new Error("PDF 또는 계약 내용을 입력해주세요.");
 
   contractRepo.updateContractTx(id, {
-    estimate_id,
+    estimate_id: toIntOrNull(estimate_id),
     contract_no,
     title,
     client_name,
@@ -117,9 +109,25 @@ function updateContractFromRequest(id, body, file) {
   });
 }
 
-// 상세 조회
+// ✅ 상세 조회 (기성 이력/요약 포함)
 function getContractDetail(id) {
-  return contractRepo.findById(id);
+  const contract = contractRepo.findById(id);
+  if (!contract) return null;
+
+  const progressHistory = progressRepo.findByContractId(id);
+  const sumPaid = progressRepo.sumByContractId(id);
+  const contractTotal = contract.total_amount ? Number(contract.total_amount) : 0;
+  const balance = contractTotal - sumPaid;
+
+  return {
+    ...contract,
+    progressHistory,
+    progressSummary: {
+      sumPaid,
+      contractTotal,
+      balance,
+    },
+  };
 }
 
 // 삭제

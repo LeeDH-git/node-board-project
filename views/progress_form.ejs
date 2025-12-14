@@ -1,0 +1,102 @@
+<style>
+  .section{
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fff;
+    padding:16px;
+    margin-bottom:12px;
+  }
+  .section-title{
+    font-size:13px;
+    font-weight:650;
+    margin-bottom:10px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .label{
+    font-size:12.5px;
+    color:var(--muted);
+    font-weight:700;
+  }
+  .input{
+    height:40px;
+    padding:0 12px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    font-size:13.5px;
+  }
+  .input:focus{
+    outline:none;
+    border-color:var(--text);
+    box-shadow:var(--ring);
+  }
+</style>
+
+<div class="page-head">
+  <div>
+    <h2><%= mode === 'edit' ? '기성 수정' : '기성 등록' %></h2>
+    <div class="sub">계약 기준 월별 기성 입력</div>
+  </div>
+
+  <div class="head-actions">
+    <a href="/progress" class="btn">목록</a>
+  </div>
+</div>
+
+<form method="post" action="<%= mode === 'edit' ? ('/progress/' + progress.id + '/edit') : '/progress' %>">
+  <div class="section">
+    <div class="section-title">기본 정보</div>
+
+    <div class="grid">
+      <div class="field">
+        <div class="label">계약 선택</div>
+        <select id="contract_id" name="contract_id" class="input" required>
+          <option value="">-- 선택 --</option>
+          <% contracts.forEach(c => { %>
+            <option
+              value="<%= c.id %>"
+              data-total="<%= c.total_amount || 0 %>"
+              <%= String(c.id) === String(progress.contract_id) ? 'selected' : '' %>
+            >
+              <%= c.contract_no %> / <%= c.title %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="label">기성월</div>
+        <input class="input" name="progress_month" value="<%= progress.progress_month || '' %>" placeholder="YYYY-MM" required />
+      </div>
+
+      <div class="field">
+        <div class="label">기성률 (%)</div>
+        <input class="input" id="progress_rate" name="progress_rate" value="<%= progress.progress_rate ?? '' %>" />
+      </div>
+
+      <div class="field">
+        <div class="label">기성금액</div>
+        <input class="input" id="progress_amount" name="progress_amount" value="<%= progress.progress_amount || '' %>" />
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">비고</div>
+    <input class="input" name="note" value="<%= progress.note || '' %>" />
+  </div>
+
+  <div class="head-actions">
+    <button type="submit" class="btn btn-primary">
+      <%= mode === 'edit' ? '수정 저장' : '기성 등록' %>
+    </button>
+  </div>
+</form>

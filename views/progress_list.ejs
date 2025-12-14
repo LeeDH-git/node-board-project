@@ -1,0 +1,153 @@
+<style>
+  /* 계약 목록과 동일한 테이블 테마 */
+  .page-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .page-head h2{
+    margin:0;
+    font-size:18px;
+    font-weight:650;
+    letter-spacing:-0.01em;
+  }
+  .page-head .sub{
+    margin-top:2px;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .head-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+
+  .search-form{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    width:100%;
+    margin-top:6px;
+  }
+  .search-form input{
+    height:36px;
+    padding:0 12px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    min-width:260px;
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fff;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:980px;
+  }
+  thead th{
+    background:var(--bg);
+    font-size:12.5px;
+    font-weight:600;
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+    text-align:left;
+  }
+  tbody td{
+    font-size:13px;
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  tbody tr:hover{ background:var(--bg); }
+
+  .text-center{ text-align:center; }
+  .text-right{ text-align:right; }
+  .nowrap{ white-space:nowrap; }
+
+  .link{
+    color:var(--text);
+    font-weight:600;
+    text-decoration:none;
+  }
+  .link:hover{ text-decoration:underline; }
+</style>
+
+<div class="page-head">
+  <div>
+    <h2>기성 관리</h2>
+    <div class="sub">계약별 월 기성 등록 및 누적 관리</div>
+  </div>
+
+  <div class="head-actions">
+    <a href="/progress/new" class="btn btn-primary">기성 등록</a>
+  </div>
+
+  <form method="get" action="/progress" class="search-form">
+    <input
+      type="text"
+      name="q"
+      placeholder="기성번호 / 계약번호 / 계약명 검색"
+      value="<%= searchQuery || '' %>"
+    />
+    <button type="submit" class="btn">검색</button>
+    <button type="button" class="btn" onclick="location.href='/progress'">새로고침</button>
+  </form>
+</div>
+
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="text-center" style="width:70px;">No</th>
+        <th style="width:140px;">기성번호</th>
+        <th style="width:160px;">계약번호</th>
+        <th>계약명</th>
+        <th class="text-center" style="width:90px;">기성월</th>
+        <th class="text-center" style="width:80px;">기성률</th>
+        <th class="text-right"  style="width:130px;">기성금액</th>
+        <th class="text-center" style="width:130px;">등록일</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% if (progressList && progressList.length > 0) { %>
+        <% progressList.forEach(p => { %>
+          <tr>
+            <td class="text-center"><%= p.row_no %></td>
+            <td>
+              <a class="link" href="/progress/<%= p.id %>"><%= p.progress_no %></a>
+            </td>
+            <td class="nowrap"><%= p.contract_no %></td>
+            <td><%= p.contract_title %></td>
+            <td class="text-center"><%= p.progress_month %></td>
+            <td class="text-center">
+              <%= p.progress_rate != null ? p.progress_rate + '%' : '-' %>
+            </td>
+            <td class="text-right nowrap">
+              <%= (p.progress_amount || 0).toLocaleString("ko-KR") %> 원
+            </td>
+            <td class="text-center nowrap">
+              <%= p.created_at ? p.created_at.substring(0,10) : '' %>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="8" class="text-center" style="color:var(--muted); padding:18px;">
+            등록된 기성 내역이 없습니다.
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>

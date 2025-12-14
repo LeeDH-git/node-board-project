@@ -4,8 +4,8 @@ const db = require("../db");
 // ==================== Prepared Statements ====================
 
 const insertEstimateStmt = db.prepare(`
-  INSERT INTO estimates (title, client_name, total_amount)
-  VALUES (?, ?, ?)
+  INSERT INTO estimates (estimate_no, title, client_name, total_amount)
+  VALUES (?, ?, ?, ?)
 `);
 
 const insertEstimateItemStmt = db.prepare(`
@@ -59,6 +59,14 @@ const listByTitleStmt = db.prepare(`
   OFFSET ?
 `);
 
+const getLastEstimateNoStmt = db.prepare(`
+  SELECT estimate_no
+  FROM estimates
+  WHERE estimate_no LIKE ?
+  ORDER BY estimate_no DESC
+  LIMIT 1
+`);
+
 // ==================== Repository 함수 ====================
 
 // 단건 조회
@@ -81,7 +89,11 @@ function findByTitlePaged(keywordLike, limit, offset) {
 
 // 트랜잭션 포함 CUD
 const createEstimateTx = db.transaction((header, items) => {
+  const year = new Date().getFullYear();
+  const estimateNo = header.estimate_no || getNextEstimateNo(year);
+
   const info = insertEstimateStmt.run(
+    estimateNo,
     header.title,
     header.client_name,
     header.total_amount
@@ -148,7 +160,11 @@ const copyEstimateTx = db.transaction((sourceId) => {
 
   const items = getEstimateItemsStmt.all(sourceId);
 
+  const year = new Date().getFullYear();
+  const estimateNo = getNextEstimateNo(year);
+
   const info = insertEstimateStmt.run(
+    estimateNo,
     src.title + " (복사)",
     src.client_name,
     src.total_amount
@@ -183,13 +199,29 @@ const deleteEstimateTx = db.transaction((id) => {
   deleteEstimateStmt.run(id);
 });
 
+function getNextEstimateNo(year) {
+  const like = `est-${year}-%`;
+  const row = getLastEstimateNoStmt.get(like);
+
+  let nextSeq = 1;
+  if (row && row.estimate_no) {
+    const m = String(row.estimate_no).match(/est-\d{4}-(\d{3})$/);
+    if (m) nextSeq = parseInt(m[1], 10) + 1;
+  }
+
+  return `est-${year}-${String(nextSeq).padStart(3, "0")}`;
+}
+
+
 module.exports = {
   findById,
   findItemsByEstimateId,
   countByTitle,
   findByTitlePaged,
+  getNextEstimateNo,
   createEstimateTx,
   updateEstimateTx,
   copyEstimateTx,
   deleteEstimateTx,
 };
+

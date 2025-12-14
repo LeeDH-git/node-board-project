@@ -24,6 +24,7 @@ const estimateRouter = require("./routes/estimateRoutes");
 const contractRouter = require("./routes/contractRoutes");
 const libraryRouter = require("./routes/libraryRoutes");
 const clientRouter = require("./routes/clientRoutes");
+const progressRouter = require("./routes/progressRoutes");
 
 // 메인 화면
 app.get("/", (req, res) => {
@@ -41,6 +42,7 @@ app.use("/estimate", estimateRouter);
 app.use("/contract", contractRouter);
 app.use("/library", libraryRouter);
 app.use("/client", clientRouter);
+app.use("/progress", progressRouter);
 
 // 서버 시작
 app.listen(PORT, () => {

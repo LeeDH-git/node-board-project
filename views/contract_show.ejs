@@ -134,6 +134,18 @@
     color: #ef4444;
     cursor: pointer;
   }
+  /* 버튼 공통 스타일 수정 */
+  .btn {
+    height: 36px;              /* 검색 input과 높이 통일 */
+    padding: 0 14px;
+
+    display: inline-flex;      /* ⭐ 핵심 */
+    align-items: center;       /* 세로 중앙 */
+    justify-content: center;   /* 가로 중앙 */
+
+    line-height: 1;            /* 글자 위로 뜨는 현상 방지 */
+  }
+
   .btn-danger:hover{ background: #fff5f5; }
 
   @media (max-width: 900px){
@@ -145,6 +157,55 @@
     .kv{ grid-template-columns: 1fr; }
     .pdf-embed{ height: 360px; }
   }
+    /* ===== 기성 이력 테이블 (contract 테마 동일) ===== */
+  .table-wrap{
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .table{
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+  .table thead th{
+    background: var(--bg);
+    font-size: 12.5px;
+    font-weight: 650;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .table tbody td{
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .table tbody tr:hover{ background: var(--bg); }
+  .text-right{ text-align:right; }
+  .text-center{ text-align:center; }
+  .chips{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .chip{
+    display:inline-flex;
+    gap:6px;
+    align-items:center;
+    padding:6px 10px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    font-size:12.5px;
+    background:#fff;
+  }
+  .chip .k{ color: var(--muted); }
+  .chip .v{ font-weight:650; color:var(--text); }
+
 </style>
 
 <div class="page-head">
@@ -154,8 +215,9 @@
   </div>
 
   <div class="head-actions">
-    <a href="/contract" class="btn">목록</a>
+    <a href="/contract" class="btn btn-primary">목록</a>
     <a href="/contract/<%= contract.id %>/edit" class="btn btn-primary">수정</a>
+    <a href="/progress/new?contract_id=<%= contract.id %>" class="btn btn-primary">기성 등록</a>
 
     <!-- 삭제는 form (GET 링크 금지) -->
     <form
@@ -221,6 +283,63 @@
         <div class="v"><%= contract.created_at || "-" %></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ✅ 1.5) 기성 이력 카드 -->
+<div class="card">
+  <div class="section-title">기성 이력</div>
+
+  <div class="chips">
+    <div class="chip"><span class="k">누적 기성</span><span class="v"><%= (contract.progressSummary?.sumPaid || 0).toLocaleString("ko-KR") %> 원</span></div>
+    <div class="chip"><span class="k">계약금액</span><span class="v"><%= (contract.progressSummary?.contractTotal || 0).toLocaleString("ko-KR") %> 원</span></div>
+    <div class="chip"><span class="k">잔액</span><span class="v"><%= (contract.progressSummary?.balance || 0).toLocaleString("ko-KR") %> 원</span></div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:10px; overflow-x:auto;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:140px;">기성번호</th>
+          <th class="text-center" style="width:90px;">기성월</th>
+          <th class="text-center" style="width:80px;">기성률</th>
+          <th class="text-right"  style="width:140px;">기성금액</th>
+          <th style="width:220px;">비고</th>
+          <th class="text-center" style="width:120px;">등록일</th>
+          <th class="text-center" style="width:120px;">관리</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% const list = contract.progressHistory || []; %>
+        <% if (list.length === 0) { %>
+          <tr>
+            <td colspan="7" class="text-center" style="color:var(--muted); padding:16px;">
+              등록된 기성 이력이 없습니다.
+              <span style="margin-left:8px;">
+                <a class="link" href="/progress/new?contract_id=<%= contract.id %>">기성 등록</a>
+              </span>
+            </td>
+          </tr>
+        <% } else { %>
+          <% list.forEach(p => { %>
+            <tr>
+              <td>
+                <a class="link" href="/progress/<%= p.id %>"><%= p.progress_no %></a>
+              </td>
+              <td class="text-center"><%= p.progress_month %></td>
+              <td class="text-center"><%= (p.progress_rate != null && p.progress_rate !== "") ? (p.progress_rate + "%") : "-" %></td>
+              <td class="text-right"><%= (p.progress_amount || 0).toLocaleString("ko-KR") %> 원</td>
+              <td style="white-space:normal;"><%= p.note || "-" %></td>
+              <td class="text-center"><%= p.created_at ? String(p.created_at).substring(0,10) : "-" %></td>
+              <td class="text-center">
+                <a class="link" href="/progress/<%= p.id %>/edit">수정</a>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
   </div>
 </div>
 

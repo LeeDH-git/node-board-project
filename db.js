@@ -1,3 +1,4 @@
+// db.js
 const Database = require("better-sqlite3");
 const path = require("path");
 
@@ -8,16 +9,20 @@ const db = new Database(dbPath);
 // 외래키 기능 켜기
 db.pragma("foreign_keys = ON");
 
-// 테이블 생성 (없으면 생성)
+// ==================== 테이블 생성 (없으면 생성) ====================
 db.exec(`
   -- 견적 테이블
   CREATE TABLE IF NOT EXISTS estimates (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    title         TEXT NOT NULL,          -- 견적명/공사명
+    estimate_no   TEXT,                   -- est-YYYY-NNN (추가)
+    title         TEXT NOT NULL,           -- 견적명/공사명
     client_name   TEXT,                   -- 발주처/거래처(문자열은 그대로 유지)
     total_amount  INTEGER,                -- 견적 금액
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_estimates_estimate_no
+  ON estimates(estimate_no);
 
   -- 견적 상세내역 테이블
   CREATE TABLE IF NOT EXISTS estimate_items (
@@ -45,20 +50,44 @@ db.exec(`
   -- 계약 테이블 (견적과 연결)
   CREATE TABLE IF NOT EXISTS contracts (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    estimate_id    INTEGER,              -- 어떤 견적에서 나온 계약인지 (옵션)
-    contract_no    TEXT,                 -- 계약번호
-    title          TEXT NOT NULL,        -- 계약명
-    client_name    TEXT,                 -- 발주처(문자열은 그대로 유지)
-    total_amount   INTEGER,              -- 계약 금액
-    start_date     TEXT,                 -- 착공일
-    end_date       TEXT,                 -- 준공일
-    pdf_filename   TEXT,                 -- 업로드된 계약서 PDF 파일 이름
-    body_text      TEXT,                 -- 수기로 작성한 계약서 내용
+    estimate_id    INTEGER,               -- 어떤 견적에서 나온 계약인지 (옵션)
+    contract_no    TEXT,                  -- ctr-YYYY-NNN (자동부여용)
+    title          TEXT NOT NULL,         -- 계약명
+    client_name    TEXT,                  -- 발주처(문자열은 그대로 유지)
+    total_amount   INTEGER,               -- 계약 금액
+    start_date     TEXT,                  -- 착공일
+    end_date       TEXT,                  -- 준공일
+    pdf_filename   TEXT,                  -- 업로드된 계약서 PDF 파일 이름
+    body_text      TEXT,                  -- 수기로 작성한 계약서 내용
     created_at     TEXT DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE SET NULL
   );
 
-  -- 기성 테이블 (계약과 연결)
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_contracts_contract_no
+  ON contracts(contract_no);
+
+  -- ✅ 기성 테이블 (이번에 구현한 progress 코드와 1:1 매칭)
+  CREATE TABLE IF NOT EXISTS progress (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    progress_no    TEXT NOT NULL UNIQUE,  -- prg-YYYY-NNN
+    contract_id    INTEGER NOT NULL,
+    progress_month TEXT NOT NULL,         -- YYYY-MM
+    progress_rate  REAL,                  -- 기성률(%)
+    progress_amount INTEGER NOT NULL DEFAULT 0,
+    note           TEXT,
+    created_at     TEXT DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_progress_contract_id ON progress(contract_id);
+  CREATE INDEX IF NOT EXISTS idx_progress_month      ON progress(progress_month);
+
+  -- ✅ 계약 + 월 중복 방지
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_contract_month
+  ON progress(contract_id, progress_month);
+
+  -- ===== (기존/레거시) progress_payments 테이블: 남겨둬도 무방 =====
+  -- 이미 만들었거나 앞으로 안 쓸 테이블이면 유지해도 되고, 사용 안 하면 무시하면 됩니다.
   CREATE TABLE IF NOT EXISTS progress_payments (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     contract_id   INTEGER NOT NULL,
@@ -70,7 +99,7 @@ db.exec(`
     FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE
   );
 
-  -- 직원 테이블
+  -- 직원 테이블 (기존 정의 유지)
   CREATE TABLE IF NOT EXISTS staff (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     name          TEXT NOT NULL,         -- 이름
@@ -94,7 +123,7 @@ db.exec(`
     FOREIGN KEY (staff_id)    REFERENCES staff(id)    ON DELETE CASCADE
   );
 
-  -- ✅ 거래처(발주처) 테이블
+  -- 거래처(발주처) 테이블
   CREATE TABLE IF NOT EXISTS clients (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     name          TEXT NOT NULL,         -- 거래처명
@@ -107,11 +136,21 @@ db.exec(`
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   );
 
-  CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
+  CREATE INDEX IF NOT EXISTS idx_clients_name   ON clients(name);
   CREATE INDEX IF NOT EXISTS idx_clients_biz_no ON clients(biz_no);
 `);
 
-// ✅ 기존 DB를 사용하는 경우, 선택용 client_id 컬럼을 1회 추가(없으면 에러 → catch로 무시)
+// ==================== 마이그레이션 (기존 DB 사용자 대비) ====================
+// ✅ 이미 컬럼이 있으면 에러가 나므로 try/catch로 무시
+try { db.prepare("ALTER TABLE estimates ADD COLUMN estimate_no TEXT").run(); } catch (e) {}
+try { db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS ux_estimates_estimate_no ON estimates(estimate_no)").run(); } catch (e) {}
+
+try { db.prepare("ALTER TABLE contracts ADD COLUMN contract_no TEXT").run(); } catch (e) {}
+try { db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS ux_contracts_contract_no ON contracts(contract_no)").run(); } catch (e) {}
+
+try { db.prepare("ALTER TABLE progress ADD COLUMN progress_rate REAL").run(); } catch (e) {}
+try { db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_contract_month ON progress(contract_id, progress_month)").run(); } catch (e) {}
+
 try { db.prepare("ALTER TABLE estimates ADD COLUMN client_id INTEGER").run(); } catch (e) {}
 try { db.prepare("ALTER TABLE contracts ADD COLUMN client_id INTEGER").run(); } catch (e) {}
 

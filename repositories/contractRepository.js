@@ -19,7 +19,6 @@ function countByKeyword(keywordLike) {
 
 /**
  * 검색 + 페이징 목록
- * contractService에서 (keywordLike, perPage, offset) 순으로 호출합니다.
  */
 function findPagedByKeyword(keywordLike, limit, offset) {
   return db.prepare(`
@@ -54,7 +53,6 @@ function findById(id) {
 
 /**
  * 생성(트랜잭션)
- * created_at은 DB DEFAULT가 있으면 자동 생성됩니다.
  */
 function createContractTx(data) {
   const tx = db.transaction((d) => {
@@ -127,6 +125,45 @@ function deleteContractTx(id) {
   tx(id);
 }
 
+/* =========================
+   자동 계약번호 생성
+   ctr-YYYY-NNN
+   ========================= */
+
+const getLastContractNoStmt = db.prepare(`
+  SELECT contract_no
+  FROM contracts
+  WHERE contract_no LIKE ?
+  ORDER BY contract_no DESC
+  LIMIT 1
+`);
+
+function getNextContractNo(year) {
+  const like = `ctr-${year}-%`;
+  const row = getLastContractNoStmt.get(like);
+
+  let nextSeq = 1;
+  if (row && row.contract_no) {
+    const m = String(row.contract_no).match(/ctr-\d{4}-(\d{3})$/);
+    if (m) nextSeq = parseInt(m[1], 10) + 1;
+  }
+
+  return `ctr-${year}-${String(nextSeq).padStart(3, "0")}`;
+}
+
+/**
+ * 기성관리 / select box용 계약 목록
+ */
+const listForSelectStmt = db.prepare(`
+  SELECT id, contract_no, title, total_amount
+  FROM contracts
+  ORDER BY id DESC
+`);
+
+function findAllForSelect() {
+  return listForSelectStmt.all();
+}
+
 module.exports = {
   countByKeyword,
   findPagedByKeyword,
@@ -134,4 +171,8 @@ module.exports = {
   createContractTx,
   updateContractTx,
   deleteContractTx,
+
+  // ✅ 추가 export
+  getNextContractNo,
+  findAllForSelect,
 };

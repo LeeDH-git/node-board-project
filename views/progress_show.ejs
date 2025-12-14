@@ -1,0 +1,64 @@
+<style>
+  .card{
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fff;
+    padding:16px;
+    margin-bottom:12px;
+  }
+  .title{
+    font-size:16px;
+    font-weight:650;
+    margin-bottom:10px;
+  }
+  .kv{
+    display:grid;
+    grid-template-columns:120px 1fr;
+    gap:8px;
+    padding:8px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .kv:last-child{ border-bottom:none; }
+  .k{ font-size:12.5px; color:var(--muted); }
+  .v{ font-size:13.5px; font-weight:550; }
+</style>
+
+<div class="page-head">
+  <div>
+    <h2>기성 상세</h2>
+    <div class="sub"><%= progress.progress_no %></div>
+  </div>
+
+  <div class="head-actions">
+    <a href="/progress" class="btn">목록</a>
+    <a href="/progress/<%= progress.id %>/edit" class="btn btn-primary">수정</a>
+    <form
+      method="post"
+      action="/progress/<%= progress.id %>/delete"
+      onsubmit="return confirm('이 기성을 삭제하시겠습니까?');"
+      style="margin:0;"
+    >
+      <button type="submit" class="btn-danger">삭제</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="title">기성 정보</div>
+
+  <div class="kv"><div class="k">기성번호</div><div class="v"><%= progress.progress_no %></div></div>
+  <div class="kv"><div class="k">계약번호</div><div class="v"><%= progress.contract_no %></div></div>
+  <div class="kv"><div class="k">계약명</div><div class="v"><%= progress.contract_title %></div></div>
+  <div class="kv"><div class="k">기성월</div><div class="v"><%= progress.progress_month %></div></div>
+  <div class="kv"><div class="k">기성률</div><div class="v"><%= progress.progress_rate != null ? progress.progress_rate + '%' : '-' %></div></div>
+  <div class="kv"><div class="k">기성금액</div><div class="v"><%= progress.progress_amount.toLocaleString("ko-KR") %> 원</div></div>
+  <div class="kv"><div class="k">비고</div><div class="v"><%= progress.note || '-' %></div></div>
+</div>
+
+<div class="card">
+  <div class="title">누적 현황</div>
+
+  <div class="kv"><div class="k">누적 기성</div><div class="v"><%= summary.sumPaid.toLocaleString("ko-KR") %> 원</div></div>
+  <div class="kv"><div class="k">계약금액</div><div class="v"><%= summary.contractTotal.toLocaleString("ko-KR") %> 원</div></div>
+  <div class="kv"><div class="k">잔액</div><div class="v"><%= summary.balance.toLocaleString("ko-KR") %> 원</div></div>
+</div>
