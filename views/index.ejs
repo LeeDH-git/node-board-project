@@ -1,48 +1,107 @@
-<div style="display:grid; gap:12px;">
-  <a href="/estimate" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border:1px solid #E5E7EB; border-radius:12px; background:#fff;">
+<style>
+  .menu-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .menu-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 14px 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    background: #fff;
+
+    text-decoration: none;
+    color: inherit;
+
+    transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+
+  /* ✅ hover 시 회색 하이라이트 */
+  .menu-card:hover {
+    background: #F3F4F6;
+    border-color: #E5E7EB;
+    box-shadow: inset 0 0 0 1px #E5E7EB;
+    cursor: pointer;
+  }
+
+  /* ✅ 키보드(Tab) 접근 시도 동일하게 표시 */
+  .menu-card:focus-visible {
+    background: #F3F4F6;
+    outline: none;
+    box-shadow: inset 0 0 0 2px #D1D5DB;
+  }
+
+  .menu-title {
+    font-weight: 650;
+  }
+
+  .menu-desc {
+    font-size: 12.5px;
+    color: #6B7280;
+  }
+
+  .menu-enter {
+    font-size: 12px;
+    color: #6B7280;
+    transition: color .15s ease;
+  }
+
+  /* (선택) hover 시 ENTER 살짝 진하게 */
+  .menu-card:hover .menu-enter {
+    color: #4B5563;
+  }
+</style>
+
+<div class="menu-grid">
+  <a href="/estimate" class="menu-card">
     <div>
-      <div style="font-weight:650;">견적관리</div>
-      <div style="font-size:12.5px; color:#6B7280;">공사별·거래처별 견적 등록 / 조회</div>
+      <div class="menu-title">견적관리</div>
+      <div class="menu-desc">공사별·거래처별 견적 등록 / 조회</div>
     </div>
-    <div style="font-size:12px; color:#6B7280;">ENTER</div>
+    <div class="menu-enter">ENTER</div>
   </a>
 
-<a href="/contract" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border:1px solid #E5E7EB; border-radius:12px; background:#fff;">
+  <a href="/contract" class="menu-card">
     <div>
-      <div style="font-weight:650;">계약관리</div>
-      <div style="font-size:12.5px; color:#6B7280;">하도급·자재·용역 계약서 관리</div>
+      <div class="menu-title">계약관리</div>
+      <div class="menu-desc">하도급·자재·용역 계약서 관리</div>
     </div>
-    <div style="font-size:12px; color:#6B7280;">ENTER</div>
+    <div class="menu-enter">ENTER</div>
   </a>
 
-  <a href="/progress" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border:1px solid #E5E7EB; border-radius:12px; background:#fff;">
+  <a href="/progress" class="menu-card">
     <div>
-      <div style="font-weight:650;">기성관리</div>
-      <div style="font-size:12.5px; color:#6B7280;">월별 기성 내역 및 정산 관리</div>
+      <div class="menu-title">기성관리</div>
+      <div class="menu-desc">월별 기성 내역 및 정산 관리</div>
     </div>
-    <div style="font-size:12px; color:#6B7280;">ENTER</div>
+    <div class="menu-enter">ENTER</div>
   </a>
 
-  <a href="/staff" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border:1px solid #E5E7EB; border-radius:12px; background:#fff;">
+  <a href="/staff" class="menu-card">
     <div>
-      <div style="font-weight:650;">직원관리</div>
-      <div style="font-size:12.5px; color:#6B7280;">직원 정보 / 노임 / 투입 현황 관리</div>
+      <div class="menu-title">직원관리</div>
+      <div class="menu-desc">직원 정보 / 노임 / 투입 현황 관리</div>
     </div>
-    <div style="font-size:12px; color:#6B7280;">ENTER</div>
-  </a>
-  <a href="/client" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border:1px solid #E5E7EB; border-radius:12px; background:#fff;">
-    <div>
-      <div style="font-weight:650;">거래처관리</div>
-      <div style="font-size:12.5px; color:#6B7280;">거래처 등록 / 검색 / 선택(견적 연동)</div>
-    </div>
-    <div style="font-size:12px; color:#6B7280;">ENTER</div>
-  </a>
-  <a href="/library" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border:1px solid #E5E7EB; border-radius:12px; background:#fff;">
-    <div>
-      <div style="font-weight:650;">서식 및 자료실</div>
-      <div style="font-size:12.5px; color:#6B7280;">안전/계약/노무 서식, 현장 자료 업로드·검색</div>
-    </div>
-      <div style="font-size:12px; color:#6B7280;">ENTER</div>
+    <div class="menu-enter">ENTER</div>
   </a>
 
+  <a href="/client" class="menu-card">
+    <div>
+      <div class="menu-title">거래처관리</div>
+      <div class="menu-desc">거래처 등록 / 검색 / 선택(견적 연동)</div>
+    </div>
+    <div class="menu-enter">ENTER</div>
+  </a>
+
+  <a href="/library" class="menu-card">
+    <div>
+      <div class="menu-title">서식 및 자료실</div>
+      <div class="menu-desc">안전/계약/노무 서식, 현장 자료 업로드·검색</div>
+    </div>
+    <div class="menu-enter">ENTER</div>
+  </a>
 </div>
