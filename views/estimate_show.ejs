@@ -269,10 +269,11 @@
       <a href="/estimate" class="estimate-btn estimate-btn-outline">목록</a>
       <a href="/estimate/<%= estimate.id %>/edit" class="estimate-btn">수정</a>
 
-      <button type="button" class="estimate-btn"
+      <a href="/estimate/<%= estimate.id %>/pdf" class="estimate-btn" target="_blank" width=1100 height=800>PDF 출력</a>
+      <!-- <button type="button" class="estimate-btn"
         onclick="window.open('/estimate/<%= estimate.id %>/print','_blank','width=1100,height=800')">
         인쇄
-      </button>
+      </button> -->
 
       <button type="button" class="estimate-btn"
         onclick="window.location='/estimate/<%= estimate.id %>/excel'">

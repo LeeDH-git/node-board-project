@@ -5,7 +5,7 @@ const estimateService = require("../services/estimateService");
 const estimateExcelService = require("../services/estimateExcelService");
 
 const estimateRepo = require("../repositories/estimateRepository"); // 엑셀 다운로드용(조회만)
-
+const puppeteer = require("puppeteer");
 const router = express.Router();
 
 function parseId(param) {
@@ -113,6 +113,48 @@ router.get("/:id/print", (req, res) => {
 
   // 레이아웃 없는 독립 문서(견적서만) 렌더
   res.render("estimate_print", detail);
+});
+
+// PDF 생성 (브라우저 헤더/푸터 없이 PDF 문서로 출력)
+router.get("/:id/pdf", async (req, res) => {
+  const id = parseId(req.params.id);
+
+  // 존재 여부 확인(불필요한 크로미움 실행 방지)
+  const detail = estimateService.getEstimateDetail(id);
+  if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
+
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const targetUrl = `${baseUrl}/estimate/${id}/print`;
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: "new",
+      // 서버/도커에서 막히면 아래 args를 켜세요
+      // args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+    await page.goto(targetUrl, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      landscape: true,          // 너는 @page에서 landscape 쓰고 있으니 PDF도 동일하게
+      printBackground: true,    // 파란 헤더 배경 등 색상 포함
+      margin: { top: "12mm", right: "12mm", bottom: "12mm", left: "12mm" },
+      displayHeaderFooter: false, // 상단/하단(시간/URL 같은) 없음
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    // inline: 브라우저에서 열기 / attachment: 다운로드
+    res.setHeader("Content-Disposition", `inline; filename="estimate_${id}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("PDF 생성 중 오류");
+  } finally {
+    if (browser) await browser.close();
+  }
 });
 
 // 엑셀 다운로드

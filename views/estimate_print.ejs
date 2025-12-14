@@ -30,6 +30,7 @@
     h1 {
       text-align: center;
       margin: 0 0 20px;
+      letter-spacing: 4px;
     }
 
     .header-row {
@@ -47,13 +48,15 @@
       background: transparent;
       padding: 0;
       font-size: 14px;
+      width: auto;
+      max-width: 520px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 11px;
-      table-layout: fixed;
+      table-layout: fixed; /* colgroup 기반 고정 */
     }
 
     th, td {
@@ -61,28 +64,56 @@
       padding: 3px 4px;
       text-align: center;
       vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     thead th {
       background: #ddebf7;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     tr.total-row td {
-      font-weight: 700;
+      font-weight: 800;
     }
 
     td.total-label {
       background: #eeeeee;
       text-align: left;
+      padding-left: 8px;
     }
 
-    td input {
-      width: 100%;
-      border: none;
-      background: transparent;
-      font-size: 11px;
+    /* ===== 텍스트 좌측정렬 (품명/규격 전용) ===== */
+    td.text-left, th.text-left {
+      text-align: left;
+      padding-left: 6px;
     }
+    
+    /* ===== 합계 셀 전용 ===== */
+    td.total-label {
+      background: #eeeeee;
+      text-align: center;          /* 가운데 정렬 */
+      letter-spacing: 0.8em;       /* 글자 사이 띄우기 */
+      padding-left: 0;             /* 가운데 기준 */
+      font-weight: 800;
+    }
+
+    /* ===== 컬럼 너비 제어 ===== */
+    col.col-item { width: 230px; } /* 품명 넓게 */
+    col.col-spec { width: 130px; } /* 규격 넓게 */
+    col.col-unit { width: 55px; }  /* 단위 좁게 */
+    col.col-qty  { width: 60px; }  /* 수량 좁게 */
+    col.col-num  { width: 85px; }  /* 단가/금액 */
+    col.col-note { width: 90px; }  /* 비고 */
+
+    /* ===== 숫자 우측정렬 ===== */
+    td.num, th.num {
+      text-align: right;
+      padding-right: 6px;
+    }
+
+    /* (선택) 품명은 줄바꿈 허용하고 싶으면 아래 주석 해제 */
+    /* td.item { white-space: normal; } */
 
     /* ===== 인쇄 전용 ===== */
     @page {
@@ -95,7 +126,6 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-
       table, tr, td, th {
         page-break-inside: avoid;
       }
@@ -109,6 +139,15 @@
     if (n === null || n === undefined || n === "") return "";
     const num = Number(n);
     if (isNaN(num)) return n;
+    return num.toLocaleString("ko-KR");
+  }
+
+  // 0이면 공란(단가/금액에 사용)
+  function fmtZeroBlank(n) {
+    if (n === null || n === undefined || n === "") return "";
+    const num = Number(n);
+    if (isNaN(num)) return n;
+    if (num === 0) return "";
     return num.toLocaleString("ko-KR");
   }
 
@@ -130,6 +169,31 @@
   </div>
 
   <table>
+    <colgroup>
+      <col class="col-item">
+      <col class="col-spec">
+      <col class="col-unit">
+      <col class="col-qty">
+
+      <!-- 재료비(단가/금액) -->
+      <col class="col-num">
+      <col class="col-num">
+
+      <!-- 노무비(단가/금액) -->
+      <col class="col-num">
+      <col class="col-num">
+
+      <!-- 경비(단가/금액) -->
+      <col class="col-num">
+      <col class="col-num">
+
+      <!-- 합계(단가/금액) -->
+      <col class="col-num">
+      <col class="col-num">
+
+      <col class="col-note">
+    </colgroup>
+
     <thead>
       <tr>
         <th rowspan="2">품명</th>
@@ -143,10 +207,10 @@
         <th rowspan="2">비고</th>
       </tr>
       <tr>
-        <th>단가</th><th>금액</th>
-        <th>단가</th><th>금액</th>
-        <th>단가</th><th>금액</th>
-        <th>단가</th><th>금액</th>
+        <th class="num">단가</th><th class="num">금액</th>
+        <th class="num">단가</th><th class="num">금액</th>
+        <th class="num">단가</th><th class="num">금액</th>
+        <th class="num">단가</th><th class="num">금액</th>
       </tr>
     </thead>
 
@@ -158,22 +222,23 @@
         sumTotal += Number(row.total_amount || 0);
       %>
       <tr>
-        <td><%= row.item_name || "" %></td>
-        <td><%= row.spec || "" %></td>
+        <td class="text-left item"><%= row.item_name || "" %></td>
+        <td class="text-left"><%= row.spec || "" %></td>
         <td><%= row.unit || "" %></td>
-        <td><%= fmt(row.qty) %></td>
+        <td class="num"><%= fmt(row.qty) %></td>
 
-        <td><%= fmt(row.material_unit) %></td>
-        <td><%= fmt(row.material_amount) %></td>
+        <!-- ✅ 단가/금액: 우측정렬 + 0이면 공란 -->
+        <td class="num"><%= fmtZeroBlank(row.material_unit) %></td>
+        <td class="num"><%= fmtZeroBlank(row.material_amount) %></td>
 
-        <td><%= fmt(row.labor_unit) %></td>
-        <td><%= fmt(row.labor_amount) %></td>
+        <td class="num"><%= fmtZeroBlank(row.labor_unit) %></td>
+        <td class="num"><%= fmtZeroBlank(row.labor_amount) %></td>
 
-        <td><%= fmt(row.expense_unit) %></td>
-        <td><%= fmt(row.expense_amount) %></td>
+        <td class="num"><%= fmtZeroBlank(row.expense_unit) %></td>
+        <td class="num"><%= fmtZeroBlank(row.expense_amount) %></td>
 
-        <td><%= fmt(row.total_unit) %></td>
-        <td><%= fmt(row.total_amount) %></td>
+        <td class="num"><%= fmtZeroBlank(row.total_unit) %></td>
+        <td class="num"><%= fmtZeroBlank(row.total_amount) %></td>
 
         <td><%= row.note || "" %></td>
       </tr>
@@ -182,15 +247,26 @@
 
     <tfoot>
       <tr class="total-row">
-        <td class="total-label">합계</td>
-        <td colspan="4"></td>
-        <td><%= fmt(sumMaterial) %></td>
+        <!-- ✅ 합계: 수량 칸까지 병합(품명~수량 = 4칸) -->
+        <td class="total-label" colspan="4">합계</td>
+
+        <!-- 재료비 -->
         <td></td>
-        <td><%= fmt(sumLabor) %></td>
+        <td class="num"><%= fmtZeroBlank(sumMaterial) %></td>
+
+        <!-- 노무비 -->
         <td></td>
-        <td><%= fmt(sumExpense) %></td>
+        <td class="num"><%= fmtZeroBlank(sumLabor) %></td>
+
+        <!-- 경비 -->
         <td></td>
-        <td><%= fmt(sumTotal) %></td>
+        <td class="num"><%= fmtZeroBlank(sumExpense) %></td>
+
+        <!-- 합계 -->
+        <td></td>
+        <td class="num"><%= fmtZeroBlank(sumTotal) %></td>
+
+        <!-- 비고 -->
         <td></td>
       </tr>
     </tfoot>
@@ -199,8 +275,14 @@
 
 <script>
   window.addEventListener("load", () => {
-    window.addEventListener("afterprint", () => window.close());
-    window.print();
+    const isHeadless =
+      /HeadlessChrome/i.test(navigator.userAgent) ||
+      /Puppeteer/i.test(navigator.userAgent);
+
+    if (!isHeadless) {
+      window.addEventListener("afterprint", () => window.close());
+      window.print();
+    }
   });
 </script>
 
