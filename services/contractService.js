@@ -42,25 +42,23 @@ function listContracts(searchQuery, pageParam, perPage) {
 
 // 신규 생성
 function createContractFromRequest(body, file) {
-  const {
-    estimate_id,
-    contract_no,
-    title,
-    client_name,
-    total_amount,
-    start_date,
-    end_date,
-    body_text,
-  } = body;
+  const { estimate_id, title, client_name, total_amount, start_date, end_date, body_text } = body;
 
   if (!title) throw new Error("계약명은 필수입니다.");
   if (!file && !body_text) throw new Error("PDF 또는 계약 내용을 입력해주세요.");
 
   const pdf_filename = file ? file.filename : null;
 
+  // ✅ 계약번호 자동 생성 (ctr-YYYY-NNN)
+  const year = new Date().getFullYear();
+  const finalContractNo =
+    body.contract_no && String(body.contract_no).trim()
+      ? String(body.contract_no).trim()
+      : contractRepo.getNextContractNo(year);
+
   const id = contractRepo.createContractTx({
     estimate_id: toIntOrNull(estimate_id),
-    contract_no,
+    contract_no: finalContractNo,
     title,
     client_name,
     total_amount: toIntOrNull(total_amount),
@@ -78,16 +76,7 @@ function updateContractFromRequest(id, body, file) {
   const existing = contractRepo.findById(id);
   if (!existing) throw new Error("존재하지 않는 계약입니다.");
 
-  const {
-    estimate_id,
-    contract_no,
-    title,
-    client_name,
-    total_amount,
-    start_date,
-    end_date,
-    body_text,
-  } = body;
+  const { estimate_id, contract_no, title, client_name, total_amount, start_date, end_date, body_text } = body;
 
   if (!title) throw new Error("계약명은 필수입니다.");
 
@@ -109,7 +98,7 @@ function updateContractFromRequest(id, body, file) {
   });
 }
 
-// ✅ 상세 조회 (기성 이력/요약 포함)
+// 상세 조회 (기성 이력/요약 포함)
 function getContractDetail(id) {
   const contract = contractRepo.findById(id);
   if (!contract) return null;
@@ -135,10 +124,15 @@ function deleteContract(id) {
   contractRepo.deleteContractTx(id);
 }
 
+function getNextContractNo(year) {
+  return contractRepo.getNextContractNo(year);
+}
+
 module.exports = {
   listContracts,
   createContractFromRequest,
   updateContractFromRequest,
   getContractDetail,
   deleteContract,
+  getNextContractNo,
 };

@@ -8,34 +8,6 @@
     --ring: var(--ring, 0 0 0 4px rgba(17,24,39,.14));
   }
 
-  .page-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .page-head h2{
-    margin:0;
-    font-size: 18px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-  .page-sub{
-    margin-top: 2px;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-  .head-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap: wrap;
-    align-items:center;
-    justify-content:flex-end;
-  }
-
   .card{
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -65,29 +37,9 @@
     border-bottom: 1px solid var(--border);
   }
   .kv:last-child{ border-bottom: none; }
-  .k{
-    color: var(--muted);
-    font-size: 12.5px;
-  }
-  .v{
-    color: var(--text);
-    font-size: 13.5px;
-    font-weight: 550;
-    word-break: break-word;
-  }
-  .link{
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 650;
-  }
-  .link:hover{ text-decoration: underline; }
+  .k{ color: var(--muted); font-size: 12.5px; }
+  .v{ color: var(--text); font-size: 13.5px; font-weight: 550; word-break: break-word; }
 
-  .content-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 12px;
-  }
   .section-title{
     margin: 0 0 10px 0;
     font-size: 13px;
@@ -119,50 +71,31 @@
     margin: 0;
   }
 
-  .muted{
-    color: var(--muted);
-    font-size: 12.5px;
+  .chips{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:8px;
   }
-
-  /* Danger 버튼(콘솔 톤에 맞춘 최소 스타일) */
-  .btn-danger{
-    height: 36px;
-    padding: 0 14px;
-    border-radius: 10px;
-    border: 1px solid #ef4444;
-    background: #fff;
-    color: #ef4444;
-    cursor: pointer;
+  .chip{
+    display:inline-flex;
+    gap:6px;
+    align-items:center;
+    padding:6px 10px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    font-size:12.5px;
+    background:#fff;
   }
-  /* 버튼 공통 스타일 수정 */
-  .btn {
-    height: 36px;              /* 검색 input과 높이 통일 */
-    padding: 0 14px;
+  .chip .k{ color: var(--muted); }
+  .chip .v{ font-weight:650; color:var(--text); }
 
-    display: inline-flex;      /* ⭐ 핵심 */
-    align-items: center;       /* 세로 중앙 */
-    justify-content: center;   /* 가로 중앙 */
-
-    line-height: 1;            /* 글자 위로 뜨는 현상 방지 */
-  }
-
-  .btn-danger:hover{ background: #fff5f5; }
-
-  @media (max-width: 900px){
-    .meta-grid{ grid-template-columns: 1fr; }
-    .content-grid{ grid-template-columns: 1fr; }
-    .pdf-embed{ height: 480px; }
-  }
-  @media (max-width: 520px){
-    .kv{ grid-template-columns: 1fr; }
-    .pdf-embed{ height: 360px; }
-  }
-    /* ===== 기성 이력 테이블 (contract 테마 동일) ===== */
   .table-wrap{
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
     background: #fff;
+    margin-top: 10px;
   }
   .table{
     width: 100%;
@@ -187,51 +120,17 @@
   .table tbody tr:hover{ background: var(--bg); }
   .text-right{ text-align:right; }
   .text-center{ text-align:center; }
-  .chips{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-top:8px;
-  }
-  .chip{
-    display:inline-flex;
-    gap:6px;
-    align-items:center;
-    padding:6px 10px;
-    border:1px solid var(--border);
-    border-radius:999px;
-    font-size:12.5px;
-    background:#fff;
-  }
-  .chip .k{ color: var(--muted); }
-  .chip .v{ font-weight:650; color:var(--text); }
 
+  @media (max-width: 900px){
+    .meta-grid{ grid-template-columns: 1fr; }
+    .pdf-embed{ height: 480px; }
+  }
+  @media (max-width: 520px){
+    .kv{ grid-template-columns: 1fr; }
+    .pdf-embed{ height: 360px; }
+  }
 </style>
 
-<div class="page-head">
-  <div>
-    <h2>계약 상세</h2>
-    <div class="page-sub"><%= contract.title || "" %></div>
-  </div>
-
-  <div class="head-actions">
-    <a href="/contract" class="btn btn-primary">목록</a>
-    <a href="/contract/<%= contract.id %>/edit" class="btn btn-primary">수정</a>
-    <a href="/progress/new?contract_id=<%= contract.id %>" class="btn btn-primary">기성 등록</a>
-
-    <!-- 삭제는 form (GET 링크 금지) -->
-    <form
-      action="/contract/<%= contract.id %>/delete"
-      method="post"
-      onsubmit="return confirm('정말 삭제하시겠습니까?');"
-      style="margin:0;"
-    >
-      <button type="submit" class="btn-danger">삭제</button>
-    </form>
-  </div>
-</div>
-
-<!-- 1) 기본 정보 카드 -->
 <div class="card">
   <div class="title"><%= contract.title %></div>
 
@@ -267,26 +166,17 @@
 
       <div class="kv">
         <div class="k">연결 견적 ID</div>
-        <div class="v">
-          <% if (contract.estimate_id) { %>
-            <%= contract.estimate_id %>
-            <!-- 필요시 링크 활성화: -->
-            <!-- <a class="link" href="/estimate/<%= contract.estimate_id %>">(견적 보기)</a> -->
-          <% } else { %>
-            -
-          <% } %>
-        </div>
+        <div class="v"><%= contract.estimate_id ? contract.estimate_id : "-" %></div>
       </div>
 
       <div class="kv">
         <div class="k">등록일</div>
-        <div class="v"><%= contract.created_at || "-" %></div>
+        <div class="v"><%= contract.created_at ? String(contract.created_at).substring(0, 19) : "-" %></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ✅ 1.5) 기성 이력 카드 -->
 <div class="card">
   <div class="section-title">기성 이력</div>
 
@@ -296,7 +186,7 @@
     <div class="chip"><span class="k">잔액</span><span class="v"><%= (contract.progressSummary?.balance || 0).toLocaleString("ko-KR") %> 원</span></div>
   </div>
 
-  <div class="table-wrap" style="margin-top:10px; overflow-x:auto;">
+  <div class="table-wrap" style="overflow-x:auto;">
     <table class="table">
       <thead>
         <tr>
@@ -316,25 +206,18 @@
           <tr>
             <td colspan="7" class="text-center" style="color:var(--muted); padding:16px;">
               등록된 기성 이력이 없습니다.
-              <span style="margin-left:8px;">
-                <a class="link" href="/progress/new?contract_id=<%= contract.id %>">기성 등록</a>
-              </span>
             </td>
           </tr>
         <% } else { %>
           <% list.forEach(p => { %>
             <tr>
-              <td>
-                <a class="link" href="/progress/<%= p.id %>"><%= p.progress_no %></a>
-              </td>
+              <td><a class="link" href="/progress/<%= p.id %>"><%= p.progress_no %></a></td>
               <td class="text-center"><%= p.progress_month %></td>
               <td class="text-center"><%= (p.progress_rate != null && p.progress_rate !== "") ? (p.progress_rate + "%") : "-" %></td>
               <td class="text-right"><%= (p.progress_amount || 0).toLocaleString("ko-KR") %> 원</td>
               <td style="white-space:normal;"><%= p.note || "-" %></td>
               <td class="text-center"><%= p.created_at ? String(p.created_at).substring(0,10) : "-" %></td>
-              <td class="text-center">
-                <a class="link" href="/progress/<%= p.id %>/edit">수정</a>
-              </td>
+              <td class="text-center"><a class="link" href="/progress/<%= p.id %>/edit">수정</a></td>
             </tr>
           <% }) %>
         <% } %>
@@ -343,31 +226,24 @@
   </div>
 </div>
 
-<!-- 2) 본문 영역: PDF / 수기 계약서 -->
 <% if (contract.pdf_filename || contract.body_text) { %>
-  <div class="content-grid">
+  <div class="card">
     <% if (contract.pdf_filename) { %>
-      <div class="card">
-        <div class="section-title">계약서 PDF (1페이지 미리보기)</div>
-
-        <div class="pdf-box">
-          <embed
-            class="pdf-embed"
-            src="/uploads/contracts/<%= contract.pdf_filename %>#page=1&zoom=page-width"
-            type="application/pdf"
-          >
-        </div>
-
-        <div style="margin-top: 8px;">
-          <a class="link" href="/uploads/contracts/<%= contract.pdf_filename %>" target="_blank">
-            전체 PDF 새창으로 열기
-          </a>
-        </div>
+      <div class="section-title">계약서 PDF (1페이지 미리보기)</div>
+      <div class="pdf-box">
+        <embed class="pdf-embed"
+               src="/uploads/contracts/<%= contract.pdf_filename %>#page=1&zoom=page-width"
+               type="application/pdf">
+      </div>
+      <div style="margin-top: 8px;">
+        <a class="link" href="/uploads/contracts/<%= contract.pdf_filename %>" target="_blank">
+          전체 PDF 새창으로 열기
+        </a>
       </div>
     <% } %>
 
     <% if (contract.body_text) { %>
-      <div class="card">
+      <div style="margin-top: 12px;">
         <div class="section-title">수기 계약서 내용</div>
         <pre class="pre"><%= contract.body_text %></pre>
       </div>
@@ -375,8 +251,6 @@
   </div>
 <% } else { %>
   <div class="card">
-    <div class="muted">
-      아직 PDF 파일이나 수기 계약서 내용이 등록되지 않았습니다.
-    </div>
+    <div style="color:var(--muted);">아직 PDF 파일이나 수기 계약서 내용이 등록되지 않았습니다.</div>
   </div>
 <% } %>
