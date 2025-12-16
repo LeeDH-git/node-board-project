@@ -1,64 +1,222 @@
+<!-- views/progress_show.ejs -->
 <style>
-  .card{
-    border:1px solid var(--border);
-    border-radius:12px;
-    background:#fff;
-    padding:16px;
-    margin-bottom:12px;
+  :root {
+    --bg: var(--bg, #F9FAFB);
+    --panel: var(--panel, #FFFFFF);
+    --text: var(--text, #111827);
+    --muted: var(--muted, #6B7280);
+    --border: var(--border, #E5E7EB);
+    --ring: var(--ring, 0 0 0 4px rgba(17, 24, 39, .14));
   }
-  .title{
-    font-size:16px;
-    font-weight:650;
-    margin-bottom:10px;
+
+  .btn-danger {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
   }
-  .kv{
-    display:grid;
-    grid-template-columns:120px 1fr;
-    gap:8px;
-    padding:8px 0;
-    border-bottom:1px solid var(--border);
+
+  .btn-danger:hover {
+    filter: brightness(.95);
   }
-  .kv:last-child{ border-bottom:none; }
-  .k{ font-size:12.5px; color:var(--muted); }
-  .v{ font-size:13.5px; font-weight:550; }
+
+  .section {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    padding: 14px;
+  }
+
+  .k {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .v {
+    font-size: 16px;
+    font-weight: 750;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .sub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #9CA3AF;
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .row:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .value {
+    font-size: 13.5px;
+    color: var(--text);
+    font-weight: 650;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  @media (max-width: 980px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .meta {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
-<div class="page-head">
+<div class="section">
+  <div class="section-title">요약</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="k">계약금액</div>
+      <div class="v">
+        <%= summary.contractTotal ? Number(summary.contractTotal).toLocaleString("ko-KR") : 0 %> 원
+      </div>
+      <div class="sub">
+        <%= progress.contract_no ? ('계약번호: ' + progress.contract_no) : '' %></div>
+    </div>
+
+    <div class="card">
+      <div class="k">누적 기성금액</div>
+      <div class="v"><%= summary.sumPaid ? Number(summary.sumPaid).toLocaleString("ko-KR") : 0 %> 원</div>
+      <div class="sub">계약 기준 누적 합계</div>
+    </div>
+
+    <div class="card">
+      <div class="k">잔액(계약금액 - 누적)</div>
+      <div class="v"><%= summary.balance ? Number(summary.balance).toLocaleString("ko-KR") : 0 %> 원</div>
+      <div class="sub">정산/청구 계획 확인</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">기성 정보</div>
+
+  <div class="meta">
+    <div>
+      <div class="row">
+        <div class="label">기성번호</div>
+        <div class="value"><%= progress.progress_no || ' -' %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">기성월</div>
+      <div class="value">
+        <%= progress.progress_month || '-' %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">기성률</div>
+      <div class="value">
+        <%= (progress.progress_rate===null || progress.progress_rate===undefined || progress.progress_rate==='' ) ? '-'
+          : (Number(progress.progress_rate).toFixed(2) + ' %' ) %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">기성금액</div>
+      <div class="value">
+        <%= progress.progress_amount ? Number(progress.progress_amount).toLocaleString("ko-KR") : 0 %> 원
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">등록일</div>
+      <div class="value">
+        <%= progress.created_at ? String(progress.created_at).substring(0,10) : '' %>
+      </div>
+    </div>
+  </div>
+
   <div>
-    <h2>기성 상세</h2>
-    <div class="sub"><%= progress.progress_no %></div>
-  </div>
+    <div class="row">
+      <div class="label">계약명</div>
+      <div class="value">
+        <%= progress.contract_title || '-' %>
+      </div>
+    </div>
 
-  <div class="head-actions">
-    <a href="/progress" class="btn">목록</a>
-    <a href="/progress/<%= progress.id %>/edit" class="btn btn-primary">수정</a>
-    <form
-      method="post"
-      action="/progress/<%= progress.id %>/delete"
-      onsubmit="return confirm('이 기성을 삭제하시겠습니까?');"
-      style="margin:0;"
-    >
-      <button type="submit" class="btn-danger">삭제</button>
-    </form>
+    <div class="row">
+      <div class="label">발주처</div>
+      <div class="value">
+        <%= progress.contract_client_name || '-' %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">계약번호</div>
+      <div class="value">
+        <%= progress.contract_no || '-' %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">계약금액</div>
+      <div class="value">
+        <%= progress.contract_total_amount ? Number(progress.contract_total_amount).toLocaleString("ko-KR") : 0 %> 원
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">비고</div>
+      <div class="value muted" style="white-space:pre-wrap;">
+        <%= progress.note || '-' %>
+      </div>
+    </div>
   </div>
 </div>
-
-<div class="card">
-  <div class="title">기성 정보</div>
-
-  <div class="kv"><div class="k">기성번호</div><div class="v"><%= progress.progress_no %></div></div>
-  <div class="kv"><div class="k">계약번호</div><div class="v"><%= progress.contract_no %></div></div>
-  <div class="kv"><div class="k">계약명</div><div class="v"><%= progress.contract_title %></div></div>
-  <div class="kv"><div class="k">기성월</div><div class="v"><%= progress.progress_month %></div></div>
-  <div class="kv"><div class="k">기성률</div><div class="v"><%= progress.progress_rate != null ? progress.progress_rate + '%' : '-' %></div></div>
-  <div class="kv"><div class="k">기성금액</div><div class="v"><%= progress.progress_amount.toLocaleString("ko-KR") %> 원</div></div>
-  <div class="kv"><div class="k">비고</div><div class="v"><%= progress.note || '-' %></div></div>
-</div>
-
-<div class="card">
-  <div class="title">누적 현황</div>
-
-  <div class="kv"><div class="k">누적 기성</div><div class="v"><%= summary.sumPaid.toLocaleString("ko-KR") %> 원</div></div>
-  <div class="kv"><div class="k">계약금액</div><div class="v"><%= summary.contractTotal.toLocaleString("ko-KR") %> 원</div></div>
-  <div class="kv"><div class="k">잔액</div><div class="v"><%= summary.balance.toLocaleString("ko-KR") %> 원</div></div>
 </div>

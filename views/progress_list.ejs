@@ -1,107 +1,209 @@
+<!-- views/progress_list.ejs -->
 <style>
-  /* 계약 목록과 동일한 테이블 테마 */
-  .page-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom:14px;
-    flex-wrap:wrap;
-  }
-  .page-head h2{
-    margin:0;
-    font-size:18px;
-    font-weight:650;
-    letter-spacing:-0.01em;
-  }
-  .page-head .sub{
-    margin-top:2px;
-    font-size:12.5px;
-    color:var(--muted);
-  }
-  .head-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
-  .search-form{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
-    width:100%;
-    margin-top:6px;
-  }
-  .search-form input{
-    height:36px;
-    padding:0 12px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    min-width:260px;
+  .toolbar-left {
+    flex: 1;
+    min-width: 260px;
   }
 
-  .table-scroll{
-    overflow-x:auto;
-    border:1px solid var(--border);
-    border-radius:12px;
-    background:#fff;
+  .toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
-  table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:980px;
+  .search-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
   }
-  thead th{
-    background:var(--bg);
-    font-size:12.5px;
-    font-weight:600;
-    padding:10px 12px;
-    border-bottom:1px solid var(--border);
-    white-space:nowrap;
-    text-align:left;
-  }
-  tbody td{
-    font-size:13px;
-    padding:10px 12px;
-    border-bottom:1px solid var(--border);
-  }
-  tbody tr:hover{ background:var(--bg); }
 
-  .text-center{ text-align:center; }
-  .text-right{ text-align:right; }
-  .nowrap{ white-space:nowrap; }
-
-  .link{
-    color:var(--text);
-    font-weight:600;
-    text-decoration:none;
+  .search-form input[type="text"] {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    min-width: 260px;
   }
-  .link:hover{ text-decoration:underline; }
+
+  .search-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--text);
+    box-shadow: var(--ring);
+  }
+
+  .table-scroll {
+    margin-top: 12px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+
+  thead th {
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 650;
+    font-size: 12.5px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr:hover {
+    background: var(--bg);
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 650;
+  }
+
+  .link:hover {
+    text-decoration: underline;
+  }
+
+  .btn-ghost {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .icon-btn:hover {
+    background: var(--bg);
+  }
+
+  .icon-btn img {
+    width: 16px;
+    height: 16px;
+    opacity: .9;
+  }
+
+  .pagination {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .page {
+    min-width: 30px;
+    height: 32px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+    font-size: 12.5px;
+    text-decoration: none;
+  }
+
+  .page:hover {
+    background: var(--bg);
+  }
+
+  .page.current {
+    background: var(--text);
+    border-color: var(--text);
+    color: #fff;
+    font-weight: 650;
+  }
+
+  @media (max-width: 520px) {
+    .search-form input[type="text"] {
+      min-width: 0;
+      width: 100%;
+    }
+  }
 </style>
 
-<div class="page-head">
-  <div>
-    <h2>기성 관리</h2>
-    <div class="sub">계약별 월 기성 등록 및 누적 관리</div>
+<div class="toolbar">
+  <div class="toolbar-left">
+    <form method="get" action="/progress" class="search-form">
+      <input type="text" name="q" placeholder="계약명/계약번호/기성번호로 검색"
+        value="<%= (typeof searchQuery !== 'undefined' ? searchQuery : '') %>" />
+      <button class="btn" type="submit">검색</button>
+      <button class="btn" type="button" onclick="window.location.href='/progress'">새로고침</button>
+    </form>
   </div>
 
-  <div class="head-actions">
-    <a href="/progress/new" class="btn btn-primary">기성 등록</a>
+  <div class="toolbar-right">
+    <a class="btn btn-primary" href="/progress/new">기성 등록</a>
   </div>
-
-  <form method="get" action="/progress" class="search-form">
-    <input
-      type="text"
-      name="q"
-      placeholder="기성번호 / 계약번호 / 계약명 검색"
-      value="<%= searchQuery || '' %>"
-    />
-    <button type="submit" class="btn">검색</button>
-    <button type="button" class="btn" onclick="location.href='/progress'">새로고침</button>
-  </form>
 </div>
 
 <div class="table-scroll">
@@ -110,44 +212,107 @@
       <tr>
         <th class="text-center" style="width:70px;">No</th>
         <th style="width:140px;">기성번호</th>
-        <th style="width:160px;">계약번호</th>
+        <th style="width:140px;">계약번호</th>
         <th>계약명</th>
-        <th class="text-center" style="width:90px;">기성월</th>
-        <th class="text-center" style="width:80px;">기성률</th>
-        <th class="text-right"  style="width:130px;">기성금액</th>
-        <th class="text-center" style="width:130px;">등록일</th>
+        <th style="width:160px;" class="text-center">발주처</th>
+        <th style="width:110px;" class="text-center">기성월</th>
+        <th style="width:110px;" class="text-center">기성률</th>
+        <th style="width:160px;" class="text-center">기성금액</th>
+        <th style="width:130px;" class="text-center">등록일</th>
+        <th style="width:110px;" class="text-center">관리</th>
       </tr>
     </thead>
 
     <tbody>
-      <% if (progressList && progressList.length > 0) { %>
-        <% progressList.forEach(p => { %>
+      <% if (progressList && progressList.length> 0) { %>
+        <% progressList.forEach((p)=> { %>
           <tr>
-            <td class="text-center"><%= p.row_no %></td>
-            <td>
-              <a class="link" href="/progress/<%= p.id %>"><%= p.progress_no %></a>
-            </td>
-            <td class="nowrap"><%= p.contract_no %></td>
-            <td><%= p.contract_title %></td>
-            <td class="text-center"><%= p.progress_month %></td>
             <td class="text-center">
-              <%= p.progress_rate != null ? p.progress_rate + '%' : '-' %>
+              <%= p.row_no %>
             </td>
-            <td class="text-right nowrap">
-              <%= (p.progress_amount || 0).toLocaleString("ko-KR") %> 원
+            <td class="nowrap">
+              <%= p.progress_no || '' %>
             </td>
+            <td class="nowrap">
+              <%= p.contract_no || '' %>
+            </td>
+
+            <td>
+              <a class="link" href="/progress/<%= p.id %>">
+                <%= p.contract_title || '-' %>
+              </a>
+            </td>
+
+            <td class="text-center">
+              <%= p.contract_client_name || '' %>
+            </td>
+
             <td class="text-center nowrap">
-              <%= p.created_at ? p.created_at.substring(0,10) : '' %>
+              <%= p.progress_month || '' %>
+            </td>
+
+            <td class="text-center nowrap">
+              <%= (p.progress_rate===null || p.progress_rate===undefined || p.progress_rate==='' ) ? '-' :
+                (Number(p.progress_rate).toFixed(2) + ' %' ) %>
+            </td>
+
+            <td class="text-center nowrap">
+              <%= p.progress_amount ? Number(p.progress_amount).toLocaleString("ko-KR") : '0' %> 원
+            </td>
+
+            <td class="text-center nowrap">
+              <%= p.created_at ? String(p.created_at).substring(0, 10) : '' %>
+            </td>
+
+            <td class="text-center">
+              <div class="action-buttons">
+                <a class="icon-btn" href="/progress/<%= p.id %>/edit" title="수정">
+                  <img src="/icons/edit.png" alt="edit" />
+                </a>
+
+                <button class="icon-btn" type="button" title="삭제" onclick="deleteProgress(<%= p.id %>)">
+                  <img src="/icons/delete.png" alt="delete" />
+                </button>
+              </div>
             </td>
           </tr>
-        <% }) %>
-      <% } else { %>
-        <tr>
-          <td colspan="8" class="text-center" style="color:var(--muted); padding:18px;">
-            등록된 기성 내역이 없습니다.
-          </td>
-        </tr>
-      <% } %>
+          <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="10" class="text-center" style="color: var(--muted); padding: 18px;">
+                  등록된 기성이 없습니다.
+                </td>
+              </tr>
+              <% } %>
     </tbody>
   </table>
 </div>
+
+<% if (totalPages && totalPages> 1) { %>
+  <div class="pagination" aria-label="Progress pagination">
+    <% for (let p=1; p <=totalPages; p++) { %>
+      <% if (p===currentPage) { %>
+        <span class="page current">
+          <%= p %>
+        </span>
+        <% } else { %>
+          <a class="page"
+            href="/progress?page=<%= p %><%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>">
+            <%= p %>
+          </a>
+          <% } %>
+            <% } %>
+  </div>
+  <% } %>
+
+    <script>
+      function deleteProgress(id) {
+        if (!confirm("삭제하시겠습니까?")) return;
+
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/progress/" + id + "/delete";
+        document.body.appendChild(form);
+        form.submit();
+      }
+    </script>

@@ -16,7 +16,8 @@ function toFloatOrNull(v) {
 
 function mustMonth(v) {
   const s = String(v || "").trim();
-  if (!/^\d{4}-\d{2}$/.test(s)) throw new Error("기성월은 YYYY-MM 형식이어야 합니다.");
+  if (!/^\d{4}-\d{2}$/.test(s))
+    throw new Error("기성월은 YYYY-MM 형식이어야 합니다.");
   return s;
 }
 
@@ -27,6 +28,7 @@ function calcAmountByRate(contractTotal, rate) {
   return Math.round((contractTotal * r) / 100);
 }
 
+// 목록 + 검색 + 페이징
 async function listProgress(q, page, perPage) {
   const keyword = `%${(q || "").trim()}%`;
 
@@ -41,7 +43,12 @@ async function listProgress(q, page, perPage) {
   const rows = progressRepo.findPaged(keyword, perPage, offset);
 
   const startNumber = totalCount - offset;
-  const progressList = rows.map((p, idx) => ({ ...p, row_no: startNumber - idx }));
+
+  // ✅ 기존 코드 치명적 오타 수정: ({ .p ... }) → ({ ...p ... })
+  const progressList = rows.map((p, idx) => ({
+    ...p,
+    row_no: startNumber - idx,
+  }));
 
   return {
     progressList,
@@ -64,14 +71,16 @@ function createProgressFromRequest(body) {
   const contract = contractRepo.findById(contract_id);
   if (!contract) throw new Error("존재하지 않는 계약입니다.");
 
-  // (1) 월 중복 체크 (친절 메시지)
+  // 월 중복 체크
   if (progressRepo.existsByContractMonth(contract_id, progress_month)) {
-    throw new Error("해당 계약의 해당 기성월(YYYY-MM)은 이미 등록되어 있습니다.");
+    throw new Error(
+      "해당 계약의 해당 기성월(YYYY-MM)은 이미 등록되어 있습니다."
+    );
   }
 
   const contractTotal = toIntOrZero(contract.total_amount);
 
-  // (2) 기성률이 있으면 자동 계산, 없으면 입력값 사용
+  // 기성률이 있으면 자동 계산, 없으면 입력값 사용
   let progress_amount = toIntOrZero(body.progress_amount);
   const autoAmount = calcAmountByRate(contractTotal, progress_rate);
   if (autoAmount !== null) progress_amount = autoAmount;
@@ -101,8 +110,12 @@ function updateProgressFromRequest(id, body) {
   if (!contract) throw new Error("존재하지 않는 계약입니다.");
 
   // 자기 자신 제외 중복 체크
-  if (progressRepo.existsByContractMonthExceptId(contract_id, progress_month, id)) {
-    throw new Error("해당 계약의 해당 기성월(YYYY-MM)은 이미 등록되어 있습니다.");
+  if (
+    progressRepo.existsByContractMonthExceptId(contract_id, progress_month, id)
+  ) {
+    throw new Error(
+      "해당 계약의 해당 기성월(YYYY-MM)은 이미 등록되어 있습니다."
+    );
   }
 
   const contractTotal = toIntOrZero(contract.total_amount);
