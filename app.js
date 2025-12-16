@@ -1,6 +1,7 @@
 // app.js  (리팩토링 후)
 
 const express = require("express");
+const session = require("express-session");
 const path = require("path");
 
 const app = express();
@@ -25,6 +26,22 @@ const contractRouter = require("./routes/contractRoutes");
 const libraryRouter = require("./routes/libraryRoutes");
 const clientRouter = require("./routes/clientRoutes");
 const progressRouter = require("./routes/progressRoutes");
+
+// 로그인 세션
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev-secret-change-me",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true },
+  })
+);
+
+// 로그인 정보를 모든 EJS에서 쓰도록
+app.use((req, res, next) => {
+  res.locals.me = req.session?.user || null;
+  next();
+});
 
 // 메인 화면
 app.get("/", (req, res) => {

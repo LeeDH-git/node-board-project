@@ -99,6 +99,36 @@ db.exec(`
     FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE
   );
 
+    -- =========================
+  -- ✅ 관리자 로그인(가입 노출 없음)
+  -- =========================
+  CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role          TEXT NOT NULL DEFAULT 'admin',
+    created_at    TEXT DEFAULT (datetime('now','localtime'))
+  );
+
+  -- =========================
+  -- ✅ 직원(staff) 확장 컬럼을 쓰는 형태 권장
+  --   (기존 staff 테이블은 아래 마이그레이션에서 컬럼 추가로 처리)
+  -- =========================
+
+  -- ✅ 직원 자격증 증빙 파일(다중 첨부)
+  CREATE TABLE IF NOT EXISTS staff_cert_files (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    staff_id      INTEGER NOT NULL,
+    filename      TEXT NOT NULL,      -- 저장 파일명
+    original_name TEXT NOT NULL,      -- 원본 파일명
+    created_at    TEXT DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_staff_cert_files_staff_id
+  ON staff_cert_files(staff_id);
+
+
   -- 직원 테이블 (기존 정의 유지)
   CREATE TABLE IF NOT EXISTS staff (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -142,16 +172,52 @@ db.exec(`
 
 // ==================== 마이그레이션 (기존 DB 사용자 대비) ====================
 // ✅ 이미 컬럼이 있으면 에러가 나므로 try/catch로 무시
-try { db.prepare("ALTER TABLE estimates ADD COLUMN estimate_no TEXT").run(); } catch (e) {}
-try { db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS ux_estimates_estimate_no ON estimates(estimate_no)").run(); } catch (e) {}
+try {
+  db.prepare("ALTER TABLE estimates ADD COLUMN estimate_no TEXT").run();
+} catch (e) {}
+try {
+  db.prepare(
+    "CREATE UNIQUE INDEX IF NOT EXISTS ux_estimates_estimate_no ON estimates(estimate_no)"
+  ).run();
+} catch (e) {}
 
-try { db.prepare("ALTER TABLE contracts ADD COLUMN contract_no TEXT").run(); } catch (e) {}
-try { db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS ux_contracts_contract_no ON contracts(contract_no)").run(); } catch (e) {}
+try {
+  db.prepare("ALTER TABLE contracts ADD COLUMN contract_no TEXT").run();
+} catch (e) {}
+try {
+  db.prepare(
+    "CREATE UNIQUE INDEX IF NOT EXISTS ux_contracts_contract_no ON contracts(contract_no)"
+  ).run();
+} catch (e) {}
 
-try { db.prepare("ALTER TABLE progress ADD COLUMN progress_rate REAL").run(); } catch (e) {}
-try { db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_contract_month ON progress(contract_id, progress_month)").run(); } catch (e) {}
+try {
+  db.prepare("ALTER TABLE progress ADD COLUMN progress_rate REAL").run();
+} catch (e) {}
+try {
+  db.prepare(
+    "CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_contract_month ON progress(contract_id, progress_month)"
+  ).run();
+} catch (e) {}
 
-try { db.prepare("ALTER TABLE estimates ADD COLUMN client_id INTEGER").run(); } catch (e) {}
-try { db.prepare("ALTER TABLE contracts ADD COLUMN client_id INTEGER").run(); } catch (e) {}
+try {
+  db.prepare("ALTER TABLE estimates ADD COLUMN client_id INTEGER").run();
+} catch (e) {}
+try {
+  db.prepare("ALTER TABLE contracts ADD COLUMN client_id INTEGER").run();
+} catch (e) {}
+
+// ==================== 직원(staff) 확장 마이그레이션 ====================
+try {
+  db.prepare("ALTER TABLE staff ADD COLUMN birth_date TEXT").run();
+} catch (e) {}
+try {
+  db.prepare("ALTER TABLE staff ADD COLUMN salary INTEGER").run();
+} catch (e) {}
+try {
+  db.prepare("ALTER TABLE staff ADD COLUMN photo_filename TEXT").run();
+} catch (e) {}
+try {
+  db.prepare("ALTER TABLE staff ADD COLUMN cert_text TEXT").run();
+} catch (e) {}
 
 module.exports = db;
