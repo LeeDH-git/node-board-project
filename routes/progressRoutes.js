@@ -9,7 +9,7 @@ function parseId(param) {
   return parseInt(param, 10);
 }
 
-// layout.ejs 사이드바 active 표시 (estimateRoutes와 동일 패턴)
+// sidebar active
 router.use((req, res, next) => {
   res.locals.active = "progress";
   next();
@@ -31,7 +31,6 @@ router.get("/", async (req, res) => {
       title: "기성 관리 | 현장 관리 시스템",
       headerTitle: "기성 관리",
       headerSub: "계약별 기성 등록 / 누적 현황 조회",
-      // headerAction은 list 내부 툴바에서 처리(estimate_list 스타일)
     });
   } catch (err) {
     console.error(err);
@@ -45,20 +44,25 @@ router.get("/new", (req, res) => {
     ? contractRepo.findAllForSelect()
     : [];
 
+  const selectedContractId = req.query.contract_id || "";
+  const base = selectedContractId
+    ? progressService.getContractProgressBase(selectedContractId)
+    : null;
+
   return res.render("progress_form", {
     title: "기성 등록 | 현장 관리 시스템",
     headerTitle: "기성 등록",
-    headerSub: "기성월/기성률 또는 금액을 입력하고 저장하세요.",
+    headerSub: "기성은 회차별로 등록되며, 누적률은 자동 계산됩니다.",
     headerAction: `<a href="/progress" class="btn">목록</a>`,
     mode: "create",
     progress: {
-      contract_id: req.query.contract_id || "",
+      contract_id: selectedContractId,
       progress_month: "",
-      progress_rate: "",
       progress_amount: "",
       note: "",
     },
     contracts,
+    base,
     error: null,
   });
 });
@@ -72,15 +76,19 @@ router.post("/", (req, res) => {
     const contracts = contractRepo.findAllForSelect
       ? contractRepo.findAllForSelect()
       : [];
+    const base = req.body.contract_id
+      ? progressService.getContractProgressBase(req.body.contract_id)
+      : null;
 
     return res.status(400).render("progress_form", {
       title: "기성 등록 | 현장 관리 시스템",
       headerTitle: "기성 등록",
-      headerSub: "기성월/기성률 또는 금액을 입력하고 저장하세요.",
+      headerSub: "기성은 회차별로 등록되며, 누적률은 자동 계산됩니다.",
       headerAction: `<a href="/progress" class="btn">목록</a>`,
       mode: "create",
       progress: { ...req.body },
       contracts,
+      base,
       error: err.message,
     });
   }
@@ -117,10 +125,15 @@ router.get("/:id/edit", (req, res) => {
     ? contractRepo.findAllForSelect()
     : [];
 
+  // 수정폼에서도 base를 보여주고 싶으면(현재 누적 기준)
+  const base = detail.progress.contract_id
+    ? progressService.getContractProgressBase(detail.progress.contract_id)
+    : null;
+
   return res.render("progress_form", {
     title: "기성 수정 | 현장 관리 시스템",
     headerTitle: "기성 수정",
-    headerSub: "저장 시 기존 데이터가 업데이트됩니다.",
+    headerSub: "저장 시 누적 기성률이 자동으로 재계산됩니다.",
     headerAction: `
       <a href="/progress" class="btn">목록</a>
       <a href="/progress/${id}" class="btn">상세</a>
@@ -128,6 +141,7 @@ router.get("/:id/edit", (req, res) => {
     mode: "edit",
     progress: detail.progress,
     contracts,
+    base,
     error: null,
   });
 });
@@ -143,11 +157,14 @@ router.post("/:id/edit", (req, res) => {
     const contracts = contractRepo.findAllForSelect
       ? contractRepo.findAllForSelect()
       : [];
+    const base = req.body.contract_id
+      ? progressService.getContractProgressBase(req.body.contract_id)
+      : null;
 
     return res.status(400).render("progress_form", {
       title: "기성 수정 | 현장 관리 시스템",
       headerTitle: "기성 수정",
-      headerSub: "저장 시 기존 데이터가 업데이트됩니다.",
+      headerSub: "저장 시 누적 기성률이 자동으로 재계산됩니다.",
       headerAction: `
         <a href="/progress" class="btn">목록</a>
         <a href="/progress/${id}" class="btn">상세</a>
@@ -155,6 +172,7 @@ router.post("/:id/edit", (req, res) => {
       mode: "edit",
       progress: { ...(detail ? detail.progress : {}), ...req.body, id },
       contracts,
+      base,
       error: err.message,
     });
   }

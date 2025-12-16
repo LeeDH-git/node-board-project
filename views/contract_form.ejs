@@ -1,59 +1,94 @@
 <style>
-  :root{
+  :root {
     --bg: var(--bg, #F9FAFB);
     --panel: var(--panel, #FFFFFF);
     --text: var(--text, #111827);
     --muted: var(--muted, #6B7280);
     --border: var(--border, #E5E7EB);
-    --ring: var(--ring, 0 0 0 4px rgba(17,24,39,.14));
+    --ring: var(--ring, 0 0 0 4px rgba(17, 24, 39, .14));
+
+    /* ✅ 테두리 톤 보정(카드/구분선/인풋) */
+    --b-strong: rgba(17, 24, 39, 0.18);
+    /* 카드 외곽 */
+    --b-mid: rgba(17, 24, 39, 0.12);
+    /* 내부 구분/박스 */
+    --b-soft: rgba(17, 24, 39, 0.10);
+    /* row 구분선 */
   }
 
-  .section{
-    border: 1px solid var(--border);
+  /* ===== 카드(견적상세 톤 + 테두리 보이게) ===== */
+  .card {
+    border: 1px solid var(--b-strong);
     border-radius: 12px;
     background: var(--panel);
     padding: 16px;
-    margin-bottom: 12px;
   }
-  .section-title{
+
+  .card+.card {
+    margin-top: 12px;
+  }
+
+  .title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .section-title {
     margin: 0 0 10px 0;
     font-size: 13px;
     font-weight: 650;
     letter-spacing: -0.01em;
     color: var(--text);
   }
-  .help{
+
+  .help {
     margin: 6px 0 0;
     font-size: 12px;
     color: #9CA3AF;
     line-height: 1.5;
   }
 
-  .grid{
-    display:grid;
+  /* ===== 폼 그리드 ===== */
+  .grid {
+    display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
-  .span-2{ grid-column: 1 / span 2; }
 
-  .field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+  .span-2 {
+    grid-column: 1 / span 2;
   }
-  .grid > .field:nth-last-child(-n+2){ border-bottom: none; }
 
-  .label{
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--b-soft);
+  }
+
+  .grid>.field:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+
+  .label {
     font-size: 12px;
     color: var(--muted);
     font-weight: 700;
   }
-  .req{ color:#ef4444; font-weight:700; }
 
-  .input, .textarea{
-    border: 1px solid var(--border);
+  .req {
+    color: #ef4444;
+    font-weight: 700;
+  }
+
+  /* ===== 입력류(테두리 톤 올림) ===== */
+  .input,
+  .textarea {
+    border: 1px solid var(--b-mid);
     border-radius: 10px;
     background: #fff;
     padding: 0 12px;
@@ -61,21 +96,29 @@
     font-size: 13.5px;
     color: var(--text);
   }
-  .textarea{
+
+  .textarea {
     height: auto;
     padding: 10px 12px;
-    min-height: 280px;
+    min-height: 260px;
     resize: vertical;
     line-height: 1.6;
   }
-  .input:focus, .textarea:focus{
-    outline:none;
-    border-color: var(--text);
+
+  .input:focus,
+  .textarea:focus {
+    outline: none;
+    border-color: rgba(17, 24, 39, 0.75);
     box-shadow: var(--ring);
   }
 
-  .file{
-    border: 1px solid var(--border);
+  .input[readonly] {
+    background: var(--bg);
+    border-color: var(--b-mid);
+  }
+
+  .file {
+    border: 1px solid var(--b-mid);
     border-radius: 10px;
     background: #fff;
     padding: 10px 12px;
@@ -83,179 +126,185 @@
     color: var(--text);
   }
 
-  .muted{ color: var(--muted); font-size: 12.5px; }
-
-  .pdf-box{
-    border: 1px solid var(--border);
+  /* ===== PDF 미리보기 ===== */
+  .pdf-box {
+    border: 1px solid var(--b-mid);
     border-radius: 12px;
     overflow: hidden;
     background: var(--bg);
   }
-  .pdf-embed{
+
+  .pdf-embed {
     width: 100%;
     height: 520px;
     display: block;
     border: 0;
   }
 
-  .footer{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+  /* ===== 에러 ===== */
+  .alert {
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+    color: #991b1b;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  /* ===== 하단 버튼 ===== */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 10px;
     flex-wrap: wrap;
     margin-top: 14px;
   }
-  .footer-right{
-    display:flex;
-    gap:8px;
+
+  .footer-right {
+    display: flex;
+    gap: 8px;
     flex-wrap: wrap;
-    align-items:center;
-    justify-content:flex-end;
+    align-items: center;
+    justify-content: flex-end;
   }
 
-  .btn-danger{
-    height: 36px;
-    padding: 0 14px;
-    border-radius: 10px;
-    border: 1px solid #ef4444;
-    background: #fff;
-    color: #ef4444;
-    cursor: pointer;
-  }
-  .btn-danger:hover{ background: #fff5f5; }
+  @media (max-width: 760px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
 
-  @media (max-width: 760px){
-    .grid{ grid-template-columns: 1fr; }
-    .span-2{ grid-column: auto; }
-    .pdf-embed{ height: 420px; }
+    .span-2 {
+      grid-column: auto;
+    }
+
+    .pdf-embed {
+      height: 420px;
+    }
   }
 </style>
 
-<% if (typeof error !== "undefined" && error) { %>
-  <div class="section" style="border-color:#ef4444;">
-    <div style="color:#ef4444; font-weight:700;">오류</div>
-    <div style="margin-top:6px;"><%= error %></div>
+
+<% if (typeof error !=="undefined" && error) { %>
+  <div class="alert">
+    <div style="font-weight:800; margin-bottom:6px;">오류</div>
+    <div>
+      <%= error %>
+    </div>
   </div>
-<% } %>
+  <% } %>
 
-<form
-  action="<%= contract && contract.id ? ('/contract/' + contract.id + '/edit') : '/contract' %>"
-  method="post"
-  enctype="multipart/form-data"
->
-  <div class="section">
-    <div class="section-title">기본 정보</div>
+    <form action="<%= contract && contract.id ? ('/contract/' + contract.id + '/edit') : '/contract' %>" method="post"
+      enctype="multipart/form-data">
 
-    <div class="grid">
-      <div class="field">
-        <div class="label">견적 ID (옵션)</div>
-        <input type="number" name="estimate_id" class="input"
-               value="<%= contract && contract.estimate_id ? contract.estimate_id : '' %>"
-               placeholder="해당 견적 id" />
-        <div class="help">특정 견적과 연결할 때만 입력 (없으면 비워둬도 됨)</div>
-      </div>
+      <!-- ✅ 카드 1: 기본 정보 -->
+      <div class="card">
+        <div class="title">기본 정보</div>
 
-      <div class="field">
-        <div class="label">계약번호</div>
-        <input type="text" name="contract_no" class="input"
-               value="<%=
+        <div class="grid">
+
+          <!-- ✅ 견적ID 제거 (요청사항) -->
+
+          <div class="field">
+            <div class="label">계약번호</div>
+            <input type="text" name="contract_no" class="input" value="<%=
                  (contract && contract.contract_no) ? contract.contract_no
                  : (typeof nextContractNo !== 'undefined' ? (nextContractNo || '') : '')
-               %>"
-               readonly />
-        <div class="help">자동 생성됩니다. (형식: ctr-YYYY-NNN)</div>
-      </div>
+               %>" readonly />
+            <div class="help">자동 생성됩니다. (형식: ctr-YYYY-NNN)</div>
+          </div>
 
-      <div class="field">
-        <div class="label">발주처</div>
-        <input type="text" name="client_name" class="input"
-               value="<%= contract && contract.client_name ? contract.client_name : '' %>"
-               placeholder="발주처 / 거래처" />
-      </div>
+          <div class="field">
+            <div class="label">발주처</div>
+            <input type="text" name="client_name" class="input"
+              value="<%= contract && contract.client_name ? contract.client_name : '' %>" placeholder="발주처 / 거래처" />
+          </div>
 
-      <div class="field">
-        <div class="label">계약금액</div>
-        <input type="number" name="total_amount" class="input"
-               value="<%= contract && contract.total_amount ? contract.total_amount : '' %>"
-               placeholder="숫자만 입력" min="0" step="1" />
-      </div>
+          <div class="field">
+            <div class="label">계약금액</div>
+            <input type="number" name="total_amount" class="input"
+              value="<%= contract && contract.total_amount ? contract.total_amount : '' %>" placeholder="숫자만 입력" min="0"
+              step="1" />
+          </div>
 
-      <div class="field span-2">
-        <div class="label">계약명 (공사명) <span class="req">*</span></div>
-        <input type="text" name="title" class="input" required
-               value="<%= contract ? (contract.title || '') : '' %>"
-               placeholder="예: ○○공사 토목 및 건축공사 계약" />
-      </div>
+          <div class="field span-2">
+            <div class="label">계약명 (공사명) <span class="req">*</span></div>
+            <input type="text" name="title" class="input" required value="<%= contract ? (contract.title || '') : '' %>"
+              placeholder="예: ○○공사 토목 및 건축공사 계약" />
+          </div>
 
-      <div class="field">
-        <div class="label">착공일</div>
-        <input type="date" name="start_date" class="input"
-               value="<%= contract && contract.start_date ? contract.start_date : '' %>" />
-      </div>
+          <div class="field">
+            <div class="label">착공일</div>
+            <input type="date" name="start_date" class="input"
+              value="<%= contract && contract.start_date ? contract.start_date : '' %>" />
+          </div>
 
-      <div class="field">
-        <div class="label">준공일</div>
-        <input type="date" name="end_date" class="input"
-               value="<%= contract && contract.end_date ? contract.end_date : '' %>" />
-      </div>
-    </div>
-  </div>
+          <div class="field">
+            <div class="label">준공일</div>
+            <input type="date" name="end_date" class="input"
+              value="<%= contract && contract.end_date ? contract.end_date : '' %>" />
+          </div>
 
-  <div class="section">
-    <div class="section-title">계약서 PDF</div>
-
-    <div class="field" style="border-bottom:none;">
-      <div class="label">계약서 PDF 파일 (선택)</div>
-      <input type="file" name="pdf" accept="application/pdf" class="file" />
-
-      <% if (contract && contract.pdf_filename) { %>
-        <div class="help">현재 PDF가 등록되어 있습니다. 새 파일을 선택하면 기존 파일을 교체합니다.</div>
-      <% } else { %>
-        <div class="help">PDF를 업로드하면 저장 후 상세 화면에서 첫 페이지가 미리보기로 표시됩니다.</div>
-      <% } %>
-    </div>
-
-    <% if (contract && contract.pdf_filename) { %>
-      <div style="margin-top: 12px;">
-        <div class="label" style="margin-bottom:6px;">현재 등록된 PDF (1페이지 미리보기)</div>
-        <div class="pdf-box">
-          <embed class="pdf-embed"
-                 src="/uploads/contracts/<%= contract.pdf_filename %>#page=1&zoom=page-width"
-                 type="application/pdf">
-        </div>
-        <div style="margin-top: 8px;">
-          <a class="link" href="/uploads/contracts/<%= contract.pdf_filename %>" target="_blank">
-            전체 PDF 새창으로 열기
-          </a>
         </div>
       </div>
-    <% } %>
-  </div>
 
-  <div class="section">
-    <div class="section-title">수기 계약서 내용</div>
+      <!-- ✅ 카드 2: 계약서 PDF -->
+      <div class="card">
+        <div class="section-title">계약서 PDF</div>
 
-    <div class="help" style="margin-top:0;">
-      PDF를 업로드하지 않고 아래에 계약서 전문을 수기로 작성해서 관리할 수도 있습니다.
-      PDF와 수기 내용을 둘 다 사용할 수도 있습니다.
-    </div>
+        <div class="field" style="border-bottom:none;">
+          <div class="label">계약서 PDF 파일 (선택)</div>
+          <input type="file" name="pdf" accept="application/pdf" class="file" />
 
-    <div class="field" style="margin-top:10px; border-bottom:none;">
-      <textarea name="body_text" class="textarea" rows="16"
-                placeholder="계약서 조항을 텍스트로 직접 작성하려면 여기에 입력하세요."
-      ><%= contract && contract.body_text ? contract.body_text : '' %></textarea>
-    </div>
+          <% if (contract && contract.pdf_filename) { %>
+            <div class="help">현재 PDF가 등록되어 있습니다. 새 파일을 선택하면 기존 파일을 교체합니다.</div>
+            <% } else { %>
+              <div class="help">PDF를 업로드하면 저장 후 상세 화면에서 첫 페이지가 미리보기로 표시됩니다.</div>
+              <% } %>
+        </div>
 
-    <div class="help">※ PDF 파일 또는 수기 계약서 내용 중 하나 이상은 입력하는 것을 권장합니다.</div>
-  </div>
+        <% if (contract && contract.pdf_filename) { %>
+          <div style="margin-top: 12px;">
+            <div class="label" style="margin-bottom:6px;">현재 등록된 PDF (1페이지 미리보기)</div>
+            <div class="pdf-box">
+              <embed class="pdf-embed" src="/uploads/contracts/<%= contract.pdf_filename %>#page=1&zoom=page-width"
+                type="application/pdf">
+            </div>
+            <div style="margin-top: 8px;">
+              <a class="link" href="/uploads/contracts/<%= contract.pdf_filename %>" target="_blank">
+                전체 PDF 새창으로 열기
+              </a>
+            </div>
+          </div>
+          <% } %>
+      </div>
 
-  <div class="footer">
-    <a href="/contract" class="btn">목록으로</a>
-    <div class="footer-right">
-      <button type="submit" class="btn btn-primary">
-        <%= contract ? "수정 내용 저장" : "계약 등록" %>
-      </button>
-    </div>
-  </div>
-</form>
+      <!-- ✅ 카드 3: 수기 계약서 내용 -->
+      <div class="card">
+        <div class="section-title">수기 계약서 내용</div>
+
+        <div class="help" style="margin-top:0;">
+          PDF를 업로드하지 않고 아래에 계약서 전문을 수기로 작성해서 관리할 수도 있습니다.
+          PDF와 수기 내용을 둘 다 사용할 수도 있습니다.
+        </div>
+
+        <div class="field" style="margin-top:10px; border-bottom:none;">
+          <textarea name="body_text" class="textarea" rows="16"
+            placeholder="계약서 조항을 텍스트로 직접 작성하려면 여기에 입력하세요."><%= contract && contract.body_text ? contract.body_text : '' %></textarea>
+        </div>
+
+        <div class="help">※ PDF 파일 또는 수기 계약서 내용 중 하나 이상은 입력하는 것을 권장합니다.</div>
+      </div>
+
+      <!-- ✅ 하단 버튼 -->
+      <div class="footer">
+        <a href="/contract" class="btn">목록으로</a>
+        <div class="footer-right">
+          <button type="submit" class="btn btn-primary">
+            <%= contract ? "수정 내용 저장" : "계약 등록" %>
+          </button>
+        </div>
+      </div>
+
+    </form>

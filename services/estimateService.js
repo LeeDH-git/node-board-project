@@ -63,11 +63,7 @@ async function listEstimates(searchQuery, page, perPage) {
 
   const offset = (currentPage - 1) * perPage;
 
-  const rows = estimateRepo.findByTitlePaged(
-    keyword,
-    perPage,
-    offset
-  );
+  const rows = estimateRepo.findByTitlePaged(keyword, perPage, offset);
 
   const startNumber = totalCount - offset;
   const estimates = rows.map((e, idx) => ({
@@ -114,11 +110,7 @@ function createEstimateFromRequest(body) {
   // 여기서 아예 제거하고 넘기고 싶다면 filter 추가
   const filteredItems = items.filter((item) => {
     return (
-      item.item_name ||
-      item.spec ||
-      item.unit ||
-      item.qty ||
-      item.total_amount
+      item.item_name || item.spec || item.unit || item.qty || item.total_amount
     );
   });
 
@@ -127,7 +119,7 @@ function createEstimateFromRequest(body) {
 
   const id = estimateRepo.createEstimateTx(
     {
-      estimate_no, 
+      estimate_no,
       title,
       client_name: client_name || null,
       total_amount: totalAmount,
@@ -165,11 +157,7 @@ function updateEstimateFromRequest(id, body) {
 
   const filteredItems = items.filter((item) => {
     return (
-      item.item_name ||
-      item.spec ||
-      item.unit ||
-      item.qty ||
-      item.total_amount
+      item.item_name || item.spec || item.unit || item.qty || item.total_amount
     );
   });
 

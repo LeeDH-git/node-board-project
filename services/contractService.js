@@ -42,10 +42,12 @@ function listContracts(searchQuery, pageParam, perPage) {
 
 // 신규 생성
 function createContractFromRequest(body, file) {
-  const { estimate_id, title, client_name, total_amount, start_date, end_date, body_text } = body;
+  const { title, client_name, total_amount, start_date, end_date, body_text } =
+    body;
 
   if (!title) throw new Error("계약명은 필수입니다.");
-  if (!file && !body_text) throw new Error("PDF 또는 계약 내용을 입력해주세요.");
+  if (!file && !body_text)
+    throw new Error("PDF 또는 계약 내용을 입력해주세요.");
 
   const pdf_filename = file ? file.filename : null;
 
@@ -57,7 +59,7 @@ function createContractFromRequest(body, file) {
       : contractRepo.getNextContractNo(year);
 
   const id = contractRepo.createContractTx({
-    estimate_id: toIntOrNull(estimate_id),
+    estimate_id: null,
     contract_no: finalContractNo,
     title,
     client_name,
@@ -76,17 +78,26 @@ function updateContractFromRequest(id, body, file) {
   const existing = contractRepo.findById(id);
   if (!existing) throw new Error("존재하지 않는 계약입니다.");
 
-  const { estimate_id, contract_no, title, client_name, total_amount, start_date, end_date, body_text } = body;
+  const {
+    contract_no,
+    title,
+    client_name,
+    total_amount,
+    start_date,
+    end_date,
+    body_text,
+  } = body;
 
   if (!title) throw new Error("계약명은 필수입니다.");
 
   let pdf_filename = existing.pdf_filename;
   if (file) pdf_filename = file.filename;
 
-  if (!pdf_filename && !body_text) throw new Error("PDF 또는 계약 내용을 입력해주세요.");
+  if (!pdf_filename && !body_text)
+    throw new Error("PDF 또는 계약 내용을 입력해주세요.");
 
   contractRepo.updateContractTx(id, {
-    estimate_id: toIntOrNull(estimate_id),
+    estimate_id: Null,
     contract_no,
     title,
     client_name,
@@ -105,7 +116,9 @@ function getContractDetail(id) {
 
   const progressHistory = progressRepo.findByContractId(id);
   const sumPaid = progressRepo.sumByContractId(id);
-  const contractTotal = contract.total_amount ? Number(contract.total_amount) : 0;
+  const contractTotal = contract.total_amount
+    ? Number(contract.total_amount)
+    : 0;
   const balance = contractTotal - sumPaid;
 
   return {

@@ -13,6 +13,12 @@ const updateProgressStmt = db.prepare(`
   WHERE id = ?
 `);
 
+const updateProgressRateStmt = db.prepare(`
+  UPDATE progress
+  SET progress_rate = ?
+  WHERE id = ?
+`);
+
 const deleteProgressStmt = db.prepare(`
   DELETE FROM progress WHERE id = ?
 `);
@@ -55,6 +61,13 @@ const sumByContractStmt = db.prepare(`
   WHERE contract_id = ?
 `);
 
+const sumByContractExceptIdStmt = db.prepare(`
+  SELECT COALESCE(SUM(progress_amount), 0) AS sum_amount
+  FROM progress
+  WHERE contract_id = ?
+    AND id != ?
+`);
+
 const getLastProgressNoStmt = db.prepare(`
   SELECT progress_no
   FROM progress
@@ -77,12 +90,20 @@ const existsByContractMonthExceptIdStmt = db.prepare(`
   LIMIT 1
 `);
 
-/** ✅ 계약별 기성 이력 */
-const listByContractIdStmt = db.prepare(`
+/** 계약별 기성 이력 (표시용: 최신부터) */
+const listByContractIdDescStmt = db.prepare(`
   SELECT *
   FROM progress
   WHERE contract_id = ?
   ORDER BY progress_month DESC, id DESC
+`);
+
+/** 계약별 기성 이력 (재계산용: 오래된 것부터) */
+const listByContractIdAscStmt = db.prepare(`
+  SELECT *
+  FROM progress
+  WHERE contract_id = ?
+  ORDER BY progress_month ASC, id ASC
 `);
 
 // ===== Functions =====
@@ -95,15 +116,29 @@ function countByKeyword(keywordLike) {
 }
 
 function findPaged(keywordLike, limit, offset) {
-  return listProgressStmt.all(keywordLike, keywordLike, keywordLike, limit, offset);
+  return listProgressStmt.all(
+    keywordLike,
+    keywordLike,
+    keywordLike,
+    limit,
+    offset
+  );
 }
 
 function sumByContractId(contractId) {
   return sumByContractStmt.get(contractId).sum_amount;
 }
 
+function sumByContractIdExceptId(contractId, id) {
+  return sumByContractExceptIdStmt.get(contractId, id).sum_amount;
+}
+
 function findByContractId(contractId) {
-  return listByContractIdStmt.all(contractId);
+  return listByContractIdDescStmt.all(contractId);
+}
+
+function findByContractIdAsc(contractId) {
+  return listByContractIdAscStmt.all(contractId);
 }
 
 function getNextProgressNo(year) {
@@ -145,6 +180,10 @@ const updateProgressTx = db.transaction((id, data) => {
   );
 });
 
+const updateProgressRateTx = db.transaction((id, rate) => {
+  updateProgressRateStmt.run(rate ?? null, id);
+});
+
 const deleteProgressTx = db.transaction((id) => {
   deleteProgressStmt.run(id);
 });
@@ -162,11 +201,14 @@ module.exports = {
   countByKeyword,
   findPaged,
   sumByContractId,
-  findByContractId, // ✅ 추가
+  sumByContractIdExceptId,
+  findByContractId,
+  findByContractIdAsc,
   getNextProgressNo,
   existsByContractMonth,
   existsByContractMonthExceptId,
   createProgressTx,
   updateProgressTx,
+  updateProgressRateTx,
   deleteProgressTx,
 };

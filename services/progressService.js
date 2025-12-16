@@ -7,13 +7,6 @@ function toIntOrZero(v) {
   return Number.isNaN(n) ? 0 : n;
 }
 
-function toFloatOrNull(v) {
-  const s = String(v ?? "").trim();
-  if (!s) return null;
-  const n = parseFloat(s);
-  return Number.isNaN(n) ? null : n;
-}
-
 function mustMonth(v) {
   const s = String(v || "").trim();
   if (!/^\d{4}-\d{2}$/.test(s))
@@ -21,11 +14,31 @@ function mustMonth(v) {
   return s;
 }
 
-function calcAmountByRate(contractTotal, rate) {
-  if (rate === null || rate === undefined) return null;
-  const r = Number(rate);
-  if (Number.isNaN(r)) return null;
-  return Math.round((contractTotal * r) / 100);
+function round2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
+/**
+ * 계약의 모든 기성 레코드를 (월 ASC, id ASC) 순으로 누적합을 계산해서
+ * progress_rate(누적기성률)을 재계산/갱신한다.
+ */
+function recalcContractCumulativeRates(contractId, contractTotal) {
+  const total = toIntOrZero(contractTotal);
+  const rows = progressRepo.findByContractIdAsc(contractId);
+
+  let cum = 0;
+  rows.forEach((r) => {
+    cum += toIntOrZero(r.progress_amount);
+    const rate = total > 0 ? round2((cum / total) * 100) : 0;
+    progressRepo.updateProgressRateTx(r.id, rate);
+  });
+
+  return {
+    sumPaid: cum,
+    contractTotal: total,
+    balance: total - cum,
+    cumulativeRate: total > 0 ? round2((cum / total) * 100) : 0,
+  };
 }
 
 // 목록 + 검색 + 페이징
@@ -44,7 +57,6 @@ async function listProgress(q, page, perPage) {
 
   const startNumber = totalCount - offset;
 
-  // ✅ 기존 코드 치명적 오타 수정: ({ .p ... }) → ({ ...p ... })
   const progressList = rows.map((p, idx) => ({
     ...p,
     row_no: startNumber - idx,
@@ -60,10 +72,32 @@ async function listProgress(q, page, perPage) {
   };
 }
 
+/** 신규등록 화면에서, 선택 계약의 “이전 누적/잔액/이전 누적률” 표시용 */
+function getContractProgressBase(contractId) {
+  const cid = toIntOrZero(contractId);
+  if (!cid) return null;
+
+  const contract = contractRepo.findById(cid);
+  if (!contract) return null;
+
+  const contractTotal = toIntOrZero(contract.total_amount);
+  const sumPaid = progressRepo.sumByContractId(cid);
+  const balance = contractTotal - sumPaid;
+  const prevRate =
+    contractTotal > 0 ? round2((sumPaid / contractTotal) * 100) : 0;
+
+  return {
+    contractId: cid,
+    contractTotal,
+    sumPaid,
+    balance,
+    prevRate,
+  };
+}
+
 function createProgressFromRequest(body) {
   const contract_id = toIntOrZero(body.contract_id);
   const progress_month = mustMonth(body.progress_month);
-  const progress_rate = toFloatOrNull(body.progress_rate);
   const note = (body.note || "").trim();
 
   if (!contract_id) throw new Error("계약을 선택해야 합니다.");
@@ -80,28 +114,34 @@ function createProgressFromRequest(body) {
 
   const contractTotal = toIntOrZero(contract.total_amount);
 
-  // 기성률이 있으면 자동 계산, 없으면 입력값 사용
-  let progress_amount = toIntOrZero(body.progress_amount);
-  const autoAmount = calcAmountByRate(contractTotal, progress_rate);
-  if (autoAmount !== null) progress_amount = autoAmount;
+  // ✅ 이제 “누적률 자동”이므로, 사용자 입력은 금액 위주로 받는다.
+  // (금액이 0이면 의미가 없으니 에러 처리)
+  const progress_amount = toIntOrZero(body.progress_amount);
+  if (!progress_amount) throw new Error("기성금액(원)을 입력해야 합니다.");
 
   const year = new Date().getFullYear();
   const progress_no = progressRepo.getNextProgressNo(year);
 
-  return progressRepo.createProgressTx({
+  const id = progressRepo.createProgressTx({
     progress_no,
     contract_id,
     progress_month,
-    progress_rate,
+    progress_rate: null, // 재계산으로 채움
     progress_amount,
     note,
   });
+
+  // ✅ 저장 후 전체 누적률 재계산(순서 보장)
+  recalcContractCumulativeRates(contract_id, contractTotal);
+
+  return id;
 }
 
 function updateProgressFromRequest(id, body) {
+  const progressId = toIntOrZero(id);
+
   const contract_id = toIntOrZero(body.contract_id);
   const progress_month = mustMonth(body.progress_month);
-  const progress_rate = toFloatOrNull(body.progress_rate);
   const note = (body.note || "").trim();
 
   if (!contract_id) throw new Error("계약을 선택해야 합니다.");
@@ -109,9 +149,13 @@ function updateProgressFromRequest(id, body) {
   const contract = contractRepo.findById(contract_id);
   if (!contract) throw new Error("존재하지 않는 계약입니다.");
 
-  // 자기 자신 제외 중복 체크
+  // 자기 자신 제외 월 중복 체크
   if (
-    progressRepo.existsByContractMonthExceptId(contract_id, progress_month, id)
+    progressRepo.existsByContractMonthExceptId(
+      contract_id,
+      progress_month,
+      progressId
+    )
   ) {
     throw new Error(
       "해당 계약의 해당 기성월(YYYY-MM)은 이미 등록되어 있습니다."
@@ -120,36 +164,70 @@ function updateProgressFromRequest(id, body) {
 
   const contractTotal = toIntOrZero(contract.total_amount);
 
-  let progress_amount = toIntOrZero(body.progress_amount);
-  const autoAmount = calcAmountByRate(contractTotal, progress_rate);
-  if (autoAmount !== null) progress_amount = autoAmount;
+  const progress_amount = toIntOrZero(body.progress_amount);
+  if (!progress_amount) throw new Error("기성금액(원)을 입력해야 합니다.");
 
-  progressRepo.updateProgressTx(id, {
+  progressRepo.updateProgressTx(progressId, {
     contract_id,
     progress_month,
-    progress_rate,
+    progress_rate: null, // 재계산으로 채움
     progress_amount,
     note,
   });
+
+  // ✅ 수정 후에도 전체 누적률 재계산
+  recalcContractCumulativeRates(contract_id, contractTotal);
 }
 
 function getProgressDetail(id) {
   const row = progressRepo.findById(id);
   if (!row) return null;
 
-  const sumPaid = progressRepo.sumByContractId(row.contract_id);
   const contractTotal = toIntOrZero(row.contract_total_amount);
+
+  // 전체 누적
+  const sumPaid = progressRepo.sumByContractId(row.contract_id);
   const balance = contractTotal - sumPaid;
 
-  return { progress: row, summary: { sumPaid, contractTotal, balance } };
+  // “이 레코드까지의 누적/잔액”도 표시하고 싶으면 계산
+  const asc = progressRepo.findByContractIdAsc(row.contract_id);
+  let cumAtThis = 0;
+  for (const r of asc) {
+    cumAtThis += toIntOrZero(r.progress_amount);
+    if (String(r.id) === String(row.id)) break;
+  }
+  const balanceAtThis = contractTotal - cumAtThis;
+
+  return {
+    progress: row,
+    summary: {
+      contractTotal,
+      sumPaid,
+      balance,
+      cumAtThis,
+      balanceAtThis,
+      cumulativeRateAtThis:
+        contractTotal > 0 ? round2((cumAtThis / contractTotal) * 100) : 0,
+    },
+  };
 }
 
 function deleteProgress(id) {
+  const row = progressRepo.findById(id);
+  if (!row) return;
+
+  const contractId = row.contract_id;
+  const contractTotal = toIntOrZero(row.contract_total_amount);
+
   progressRepo.deleteProgressTx(id);
+
+  // ✅ 삭제 후에도 전체 누적률 재계산
+  recalcContractCumulativeRates(contractId, contractTotal);
 }
 
 module.exports = {
   listProgress,
+  getContractProgressBase,
   createProgressFromRequest,
   updateProgressFromRequest,
   getProgressDetail,
