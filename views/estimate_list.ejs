@@ -1,32 +1,12 @@
 <style>
-  /* 페이지 전용(최소) - layout.ejs 토큰(색/보더)을 그대로 활용 */
-  .page-head{
+  /* ===== Toolbar (검색 + 우측 등록버튼) ===== */
+  .toolbar{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     justify-content:space-between;
     gap:12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap; /* 해상도 작으면 자동 줄바꿈 */
-  }
-
-  .page-head h2{
-    margin:0;
-    font-size: 18px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-  }
-  .page-head .sub{
-    margin: 2px 0 0;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-
-  .head-actions{
-    display:flex;
-    gap:8px;
     flex-wrap: wrap;
-    align-items:center;
-    justify-content:flex-end;
+    width: 100%;
   }
 
   .search-form{
@@ -34,14 +14,17 @@
     gap:8px;
     flex-wrap: wrap;
     align-items:center;
+    flex: 1;
+    min-width: 320px; /* 너무 좁아지면 줄바꿈 유도 */
   }
+
   .search-form input[type="text"]{
     height: 36px;
     padding: 0 12px;
     border-radius: 10px;
     border: 1px solid var(--border);
     background: #fff;
-    min-width: 220px;
+    min-width: 260px;
   }
   .search-form input[type="text"]:focus{
     outline:none;
@@ -49,8 +32,26 @@
     box-shadow: var(--ring);
   }
 
-  /* 테이블: 작아지면 가로 스크롤로 안전하게 */
+  .toolbar-right{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    white-space: nowrap;
+  }
+
+  /* 버튼 공통 스타일 수정(원하던 높이/정렬) */
+  .btn {
+    height: 36px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* ===== Table ===== */
   .table-scroll{
+    margin-top: 12px;
     overflow-x:auto;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -60,12 +61,13 @@
   table{
     width:100%;
     border-collapse: collapse;
-    min-width: 760px; /* 너무 좁아지면 스크롤로 */
+    min-width: 980px;
   }
+
   thead th{
     background: var(--bg);
     color: var(--text);
-    font-weight: 600;
+    font-weight: 650;
     font-size: 12.5px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
@@ -78,29 +80,24 @@
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
   }
-  tbody tr:hover{
-    background: var(--bg);
-  }
+  tbody tr:hover{ background: var(--bg); }
 
   .text-right{ text-align:right; }
   .text-center{ text-align:center; }
+  .nowrap{ white-space: nowrap; }
 
-  /* 링크 스타일 - 콘솔 톤 */
   .link{
     color: var(--text);
     text-decoration:none;
-    font-weight: 600;
+    font-weight: 650;
   }
-  .link:hover{
-    text-decoration: underline;
-  }
+  .link:hover{ text-decoration: underline; }
 
-  /* 아이콘 버튼: 크기/정렬 통일 */
   .action-buttons{
     display:flex;
     gap:6px;
     white-space: nowrap;
-    justify-content: flex-start;
+    justify-content: center;
   }
   .icon-btn{
     width: 34px;
@@ -117,7 +114,6 @@
   .icon-btn:hover{ background: var(--bg); }
   .icon-btn img{ width: 16px; height: 16px; display:block; }
 
-  /* 페이징 - 콘솔 톤 */
   .pagination{
     margin-top: 12px;
     display:flex;
@@ -146,83 +142,74 @@
     color: #fff;
     font-weight: 650;
   }
-  /* 버튼 공통 스타일 수정 */
-  .btn {
-    height: 36px;              /* 검색 input과 높이 통일 */
-    padding: 0 14px;
 
-    display: inline-flex;      /* ⭐ 핵심 */
-    align-items: center;       /* 세로 중앙 */
-    justify-content: center;   /* 가로 중앙 */
-
-    line-height: 1;            /* 글자 위로 뜨는 현상 방지 */
+  @media (max-width: 520px){
+    .search-form{ min-width: 0; width:100%; }
+    .search-form input[type="text"]{ min-width: 0; width: 100%; }
+    .toolbar-right{ width:100%; }
+    .toolbar-right .btn{ width:100%; }
   }
-
 </style>
 
-<div class="page-head">
-  <div>
-    <h2>견적관리</h2>
-    <div class="sub">공사별·거래처별 견적 등록 / 조회</div>
-  </div>
-
-  <div class="head-actions">
-    <a href="/" class="btn">메인</a>
-    <a href="/estimate/new" class="btn btn-primary">견적 등록</a>
-  </div>
-
-  <form method="GET" action="/estimate" class="search-form" style="width:100%;">
+<div class="toolbar">
+  <form method="GET" action="/estimate" class="search-form">
     <input
       type="text"
       name="q"
-      placeholder="견적명 검색"
+      placeholder="견적명으로 검색"
       value="<%= (typeof searchQuery !== 'undefined' ? searchQuery : '') %>"
     />
     <button type="submit" class="btn">검색</button>
     <button type="button" class="btn" onclick="window.location.href='/estimate'">새로고침</button>
   </form>
+
+  <div class="toolbar-right">
+    <a href="/estimate/new" class="btn btn-primary">견적 등록</a>
+  </div>
 </div>
 
-<% if (!estimates || estimates.length === 0) { %>
-  <div style="color: var(--muted); font-size: 13px;">
-    등록된 견적이 없습니다. 우측의 “견적 등록” 버튼으로 추가하세요.
-  </div>
-<% } else { %>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="text-center" style="width:70px;">No</th>
+        <th class="text-center" style="width:140px;">견적번호</th>
+        <th>견적명</th>
+        <th class="text-center" style="width:160px;">거래처</th>
+        <th class="text-right" style="width:150px;">견적금액</th>
+        <th class="text-center" style="width:130px;">등록일</th>
+        <th class="text-center" style="width:120px;">관리</th>
+      </tr>
+    </thead>
 
-  <div class="table-scroll">
-    <table>
-      <thead>
+    <tbody>
+      <% if (!estimates || estimates.length === 0) { %>
         <tr>
-          <th style="width:60px;">No</th>
-          <th style="width:120px;">견적번호</th>
-          <th>견적명</th>
-          <th style="width:120px;">거래처</th>
-          <th style="width:140px;" class="text-right">견적금액</th>
-          <th style="width:110px;" class="text-center">등록일</th>
-          <th style="width:140px;"></th>
+          <td colspan="7" class="text-center" style="color: var(--muted); padding: 18px;">
+            등록된 견적이 없습니다.
+          </td>
         </tr>
-      </thead>
-
-      <tbody>
+      <% } else { %>
         <% estimates.forEach((e) => { %>
           <tr>
-           <td class="text-center"><%= e.row_no %></td>
-           <td class="text-center"><%= e.estimate_no %></td>
+            <td class="text-center"><%= e.row_no %></td>
+            <td class="text-center nowrap"><%= e.estimate_no || "-" %></td>
+
             <td>
               <a class="link" href="/estimate/<%= e.id %>"><%= e.title %></a>
             </td>
 
             <td class="text-center"><%= e.client_name || "" %></td>
 
-            <td class="text-right">
+            <td class="text-right nowrap">
               <%= e.total_amount ? e.total_amount.toLocaleString("ko-KR") : "" %>
             </td>
 
-            <td class="text-center">
-              <%= e.created_at.slice(0,10).replace(/-/g, ".") %>
+            <td class="text-center nowrap">
+              <%= e.created_at ? String(e.created_at).substring(0,10) : "" %>
             </td>
 
-            <td>
+            <td class="text-center">
               <div class="action-buttons">
                 <a href="/estimate/<%= e.id %>/edit" class="icon-btn" title="수정">
                   <img src="/icons/edit.png" alt="수정" />
@@ -239,25 +226,24 @@
             </td>
           </tr>
         <% }) %>
-      </tbody>
-    </table>
-  </div>
-
-  <% if (totalPages > 1) { %>
-    <div class="pagination">
-      <% for (let p = 1; p <= totalPages; p++) { %>
-        <% if (p === currentPage) { %>
-          <span class="page current"><%= p %></span>
-        <% } else { %>
-          <a class="page"
-             href="/estimate?page=<%= p %><%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>">
-            <%= p %>
-          </a>
-        <% } %>
       <% } %>
-    </div>
-  <% } %>
+    </tbody>
+  </table>
+</div>
 
+<% if (totalPages && totalPages > 1) { %>
+  <div class="pagination" aria-label="Estimate pagination">
+    <% for (let p = 1; p <= totalPages; p++) { %>
+      <% if (p === currentPage) { %>
+        <span class="page current"><%= p %></span>
+      <% } else { %>
+        <a class="page"
+           href="/estimate?page=<%= p %><%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>">
+          <%= p %>
+        </a>
+      <% } %>
+    <% } %>
+  </div>
 <% } %>
 
 <script>

@@ -4,13 +4,20 @@ const express = require("express");
 const estimateService = require("../services/estimateService");
 const estimateExcelService = require("../services/estimateExcelService");
 
-const estimateRepo = require("../repositories/estimateRepository"); // 엑셀 다운로드용(조회만)
+const estimateRepo = require("../repositories/estimateRepository"); // 엑셀 다운로드/번호 생성용(조회만)
 const puppeteer = require("puppeteer");
+
 const router = express.Router();
 
 function parseId(param) {
   return parseInt(param, 10);
 }
+
+// layout.ejs 사이드바 active 표시
+router.use((req, res, next) => {
+  res.locals.active = "estimate";
+  next();
+});
 
 // 목록
 router.get("/", async (req, res) => {
@@ -22,55 +29,112 @@ router.get("/", async (req, res) => {
       perPage
     );
 
-    res.render("estimate_list", result);
+    res.render("estimate_list", {
+      ...result,
+      title: "견적 관리 | 현장 관리 시스템",
+      headerTitle: "견적 관리",
+      headerSub: "공사별·거래처별 견적 등록 / 조회",
+      //headerAction: `<a href="/estimate/new" class="btn btn-primary">견적 등록</a>`,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("목록 조회 중 오류");
   }
 });
 
-// 신규 폼 (통합 폼)
+// 신규 폼
 router.get("/new", (req, res) => {
   const ROWS = 15;
+  const year = new Date().getFullYear();
+  const nextEstimateNo = estimateRepo.getNextEstimateNo(year);
+
   res.render("estimate_form", {
+    title: "견적 등록 | 현장 관리 시스템",
+    headerTitle: "견적 등록",
+    headerSub: "견적 기본정보 및 내역을 입력하고 저장하세요.",
+    headerAction: `<a href="/estimate" class="btn">목록</a>`,
     mode: "create",
-    pageTitle: "견적 등록",
-    estimate: { title: "", client_name: "" },
+    estimate: { title: "", client_name: "", estimate_no: nextEstimateNo },
     items: Array.from({ length: ROWS }, () => ({})),
+    nextEstimateNo,
+    error: null,
   });
 });
 
 // 신규 저장
 router.post("/", (req, res) => {
   try {
-    estimateService.createEstimateFromRequest(req.body);
-    res.redirect("/estimate");
+    const id = estimateService.createEstimateFromRequest(req.body);
+    // 기존 동작은 목록으로 갔지만, UX상 상세로 보내는 게 보통 자연스러움
+    return res.redirect(`/estimate/${id}`);
   } catch (err) {
-    res.status(400).send(err.message);
+    const ROWS = 15;
+    const year = new Date().getFullYear();
+    const nextEstimateNo = estimateRepo.getNextEstimateNo(year);
+
+    return res.status(400).render("estimate_form", {
+      title: "견적 등록 | 현장 관리 시스템",
+      headerTitle: "견적 등록",
+      headerSub: "견적 기본정보 및 내역을 입력하고 저장하세요.",
+      headerAction: `<a href="/estimate" class="btn">목록</a>`,
+      mode: "create",
+      estimate: { ...req.body, estimate_no: nextEstimateNo },
+      items: Array.isArray(req.body.items) ? req.body.items : (req.body.items ? Object.values(req.body.items) : []),
+      nextEstimateNo,
+      error: err.message,
+    });
   }
 });
 
-// 수정 폼 (통합 폼)
+// 수정 폼
 router.get("/:id/edit", (req, res) => {
   const id = parseId(req.params.id);
   const detail = estimateService.getEstimateDetail(id, { fillRowCount: 15 });
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
 
+  const headerAction = `
+    <a href="/estimate" class="btn">목록</a>
+    <a href="/estimate/${id}" class="btn">상세</a>
+  `;
+
   res.render("estimate_form", {
+    title: "견적 수정 | 현장 관리 시스템",
+    headerTitle: "견적 수정",
+    headerSub: "저장 시 기존 데이터가 업데이트됩니다.",
+    headerAction,
     ...detail,
     mode: "edit",
-    pageTitle: "견적 수정",
+    nextEstimateNo: null,
+    error: null,
   });
 });
 
 // 수정 저장
 router.post("/:id/edit", (req, res) => {
   const id = parseId(req.params.id);
+
   try {
     estimateService.updateEstimateFromRequest(id, req.body);
-    res.redirect("/estimate");
+    return res.redirect(`/estimate/${id}`);
   } catch (err) {
-    res.status(400).send(err.message);
+    const detail = estimateService.getEstimateDetail(id, { fillRowCount: 15 });
+
+    const headerAction = `
+      <a href="/estimate" class="btn">목록</a>
+      <a href="/estimate/${id}" class="btn">상세</a>
+    `;
+
+    return res.status(400).render("estimate_form", {
+      title: "견적 수정 | 현장 관리 시스템",
+      headerTitle: "견적 수정",
+      headerSub: "저장 시 기존 데이터가 업데이트됩니다.",
+      headerAction,
+      estimate: { ...(detail?.estimate || {}), ...req.body, id },
+      items: Array.isArray(req.body.items) ? req.body.items : (req.body.items ? Object.values(req.body.items) : []),
+      mode: "edit",
+      nextEstimateNo: null,
+      error: err.message,
+    });
   }
 });
 
@@ -78,8 +142,8 @@ router.post("/:id/edit", (req, res) => {
 router.post("/:id/copy", (req, res) => {
   const id = parseId(req.params.id);
   try {
-    estimateService.copyEstimate(id);
-    res.redirect("/estimate");
+    const newId = estimateService.copyEstimate(id);
+    return res.redirect(`/estimate/${newId}`);
   } catch (err) {
     res.status(500).send("복사 중 오류");
   }
@@ -102,24 +166,39 @@ router.get("/:id", (req, res) => {
   const detail = estimateService.getEstimateDetail(id);
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
 
-  res.render("estimate_show", detail);
+  const headerAction = `
+    <a href="/estimate" class="btn">목록</a>
+    <a href="/estimate/${id}/edit" class="btn">수정</a>
+    <a href="/estimate/${id}/pdf" class="btn btn-primary" target="_blank">PDF 출력</a>
+    <a href="/estimate/${id}/excel" class="btn">엑셀</a>
+    <form action="/estimate/${id}/delete" method="post"
+          onsubmit="return confirm('정말로 이 견적을 삭제하시겠습니까?');"
+          style="display:inline; margin:0;">
+      <button type="submit" class="btn-danger">삭제</button>
+    </form>
+  `;
+
+  res.render("estimate_show", {
+    ...detail,
+    title: "견적 상세 | 현장 관리 시스템",
+    headerTitle: "견적 상세",
+    headerSub: detail.estimate?.title || "",
+    headerAction,
+  });
 });
 
-//  인쇄 전용 페이지 (견적서만 출력)
+// 인쇄 전용 페이지(레이아웃 없음)
 router.get("/:id/print", (req, res) => {
   const id = parseId(req.params.id);
   const detail = estimateService.getEstimateDetail(id);
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
-
-  // 레이아웃 없는 독립 문서(견적서만) 렌더
   res.render("estimate_print", detail);
 });
 
-// PDF 생성 (브라우저 헤더/푸터 없이 PDF 문서로 출력)
+// PDF 생성
 router.get("/:id/pdf", async (req, res) => {
   const id = parseId(req.params.id);
 
-  // 존재 여부 확인(불필요한 크로미움 실행 방지)
   const detail = estimateService.getEstimateDetail(id);
   if (!detail) return res.status(404).send("존재하지 않는 견적입니다.");
 
@@ -130,7 +209,6 @@ router.get("/:id/pdf", async (req, res) => {
   try {
     browser = await puppeteer.launch({
       headless: "new",
-      // 서버/도커에서 막히면 아래 args를 켜세요
       // args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
@@ -139,14 +217,13 @@ router.get("/:id/pdf", async (req, res) => {
 
     const pdfBuffer = await page.pdf({
       format: "A4",
-      landscape: true,          // 너는 @page에서 landscape 쓰고 있으니 PDF도 동일하게
-      printBackground: true,    // 파란 헤더 배경 등 색상 포함
+      landscape: true,
+      printBackground: true,
       margin: { top: "12mm", right: "12mm", bottom: "12mm", left: "12mm" },
-      displayHeaderFooter: false, // 상단/하단(시간/URL 같은) 없음
+      displayHeaderFooter: false,
     });
 
     res.setHeader("Content-Type", "application/pdf");
-    // inline: 브라우저에서 열기 / attachment: 다운로드
     res.setHeader("Content-Disposition", `inline; filename="estimate_${id}.pdf"`);
     res.send(pdfBuffer);
   } catch (err) {
@@ -166,10 +243,7 @@ router.get("/:id/excel", async (req, res) => {
 
   const items = estimateRepo.findItemsByEstimateId(id);
 
-  const workbook = await estimateExcelService.buildEstimateWorkbook(
-    estimate,
-    items
-  );
+  const workbook = await estimateExcelService.buildEstimateWorkbook(estimate, items);
 
   res.setHeader(
     "Content-Type",

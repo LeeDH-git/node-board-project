@@ -45,7 +45,7 @@ router.get("/", (req, res) => {
     title: "계약 관리 | 현장 관리 시스템",
     headerTitle: "계약 관리",
     headerSub: "하도급·자재·용역 계약서 관리",
-    headerAction: `<a href="/contract/new" class="btn btn-primary">신규 계약등록</a>`,
+    //headerAction: `<a href="/contract/new" class="btn btn-primary">신규 계약등록</a>`,
   });
 });
 

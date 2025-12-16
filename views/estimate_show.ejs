@@ -1,284 +1,360 @@
 <style>
-  /* ✅ layout의 body/font는 건드리지 않음 */
-  .estimate-page{
-    background: #f5f5f5;
-    padding: 24px 0 40px;
+  /* 계약 화면(card) 톤과 동일하게 */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
   }
 
-  /* 견적서 전체 프레임 */
-  .estimate-wrap {
-    max-width: 1450px;
-    margin: 0 auto;
-    background: #ffffff;
-    padding: 20px 24px 28px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-    box-sizing: border-box;
+  .card+.card {
+    margin-top: 12px;
+  }
+
+  .title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .kv:last-child {
+    border-bottom: none;
+  }
+
+  .k {
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+
+  .v {
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 550;
+    word-break: break-word;
+  }
+
+  /* ===== 견적 테이블 (FHD 최적 / 스크롤 최소화) ===== */
+  .table-wrap {
+    border: 2px solid rgba(17, 24, 39, 0.18);
+    border-radius: 12px;
+    background: #fff;
+    margin-top: 10px;
+
+    /* 기본은 숨김(스크롤 안 뜨게) */
     overflow-x: hidden;
   }
 
-  h1 { text-align: center; margin: 0 0 20px 0; }
-  .header-row {
-    margin-bottom: 12px;
-    font-size: 14px;
-  }
-  .header-row label {
-    font-weight: 600;
-    margin-right: 6px;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    /* ✅ A: FHD에서 화면에 맞추기 */
+    table-layout: fixed;
+
+    font-size: 12.5px;
+    border: 2px solid rgba(17, 24, 39, 0.18);
   }
 
-  /* 공사명/발주처는 글자처럼 */
-  .header-row input[type="text"] {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    width: auto !important;
-    font-size: 14px;
-  }
-  .header-input { text-align: left !important; }
-
-  /* 화면에서 볼 때만 넓게(1400px) */
-  @media screen {
-    table {
-      width: 1400px;
-      border-collapse: collapse;
-      font-size: 11px;
-      table-layout: fixed;
-    }
+  thead th {
+    background: var(--bg);
+    font-weight: 650;
+    padding: 10px 8px;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 2px solid rgba(17, 24, 39, 0.12);
   }
 
-  th, td {
-    border: 1px solid #999;
-    padding: 3px 4px;
+  tbody td,
+  tfoot td {
+    padding: 8px 8px;
     text-align: center;
     vertical-align: middle;
+    border-bottom: 2px solid rgba(17, 24, 39, 0.08);
+    font-variant-numeric: tabular-nums;
   }
 
-  th.col-name, td.col-name { width: 17%; }
-  th.col-spec, td.col-spec { width: 15%; }
-  th.col-unit, td.col-unit { width: 4%;  }
-  th.col-qty,  td.col-qty  { width: 5%;  }
-
-  th.col-mu,  td.col-mu,
-  th.col-ma,  td.col-ma,
-  th.col-lu,  td.col-lu,
-  th.col-la,  td.col-la,
-  th.col-eu,  td.col-eu,
-  th.col-ea,  td.col-ea,
-  th.col-tu,  td.col-tu,
-  th.col-ta,  td.col-ta { width: 6%; }
-
-  th.col-note, td.col-note { width: 5%; }
-
-  td input {
-    width: 100%;
-    box-sizing: border-box;
-    border: none;
-    padding: 1px 2px;
-    font-size: 11px;
-    background: #f7f7f7;
+  tbody tr:hover {
+    background: var(--bg);
   }
 
-  td.col-name input,
-  td.col-spec input {
+  /* 내부 세로선 */
+  table th,
+  table td {
+    border-right: 2px solid rgba(17, 24, 39, 0.10);
+  }
+
+  table th:last-child,
+  table td:last-child {
+    border-right: none;
+  }
+
+  /* 최외곽 테두리(상/하/좌/우) 확실하게 */
+  table thead tr:first-child th {
+    border-top: 2px solid rgba(17, 24, 39, 0.18);
+  }
+
+  table tbody tr:last-child td {
+    border-bottom: 2px solid rgba(17, 24, 39, 0.18);
+  }
+
+  table tfoot tr:last-child td {
+    border-bottom: 2px solid rgba(17, 24, 39, 0.18);
+  }
+
+  /* 정렬 */
+  .text-left {
     text-align: left;
   }
 
-  td.col-qty    input,
-  td.col-mu     input,
-  td.col-ma     input,
-  td.col-lu     input,
-  td.col-la     input,
-  td.col-eu     input,
-  td.col-ea     input,
-  td.col-tu     input,
-  td.col-ta     input {
+  .text-right {
     text-align: right;
+    padding-right: 14px;
+    /* 숫자 잘림 방지 */
+    white-space: nowrap;
   }
 
-  /* 합계 행 스타일 */
-  tr.total-row td { font-weight: 700; }
-  td.total-label { background: #eeeeee; text-align: left; }
-
-  thead th { background: #ddebf7; font-weight: 600; }
-  .sub-header { background: #ddebf7; }
-
-  input[readonly] { background: #f7f7f7; }
-
-  .text-left { text-align:left; }
-  .text-left input { text-align:left; }
-
-  .actions {
-    margin-top: 16px;
-    display:flex;
-    gap:8px;
-    justify-content: center;
-    flex-wrap: wrap;
+  /* ✅ FHD 컬럼 폭 재배치 (합계/금액 안 잘리게) */
+  th.col-name,
+  td.col-name {
+    width: 16%;
   }
 
-  /* ※ layout에도 .btn이 있을 수 있으니, 충돌이 싫으면 estimate-btn로 바꾸는 걸 권장 */
-  .estimate-btn {
-    padding: 6px 12px;
-    border-radius: 4px;
-    border: 1px solid #007bff;
-    background: #007bff;
-    color: #fff;
-    font-size: 13px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
+  th.col-spec,
+  td.col-spec {
+    width: 12%;
   }
-  .estimate-btn-outline {
-    background:#fff;
-    color:#007bff;
+
+  th.col-unit,
+  td.col-unit {
+    width: 4%;
   }
-  a { text-decoration:none; }
 
-  /* 인쇄 설정(상세 화면 자체 인쇄는 이제 거의 안 쓰겠지만, 남겨도 무방) */
-  @page { size: A4 landscape; margin: 0; }
+  th.col-qty,
+  td.col-qty {
+    width: 5%;
+  }
 
-  @media print {
-    body { margin: 12mm !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .actions { display:none !important; }
-    table, tr, td, th { page-break-inside: avoid; }
-    table { width: 100% !important; border-collapse: collapse; border: 0.5pt solid #999; }
-    th, td { border: 0.5pt solid #ccc; padding: 2px 3px; font-size: 10px; box-sizing: border-box; }
-    tbody tr { border-bottom: 0.5pt solid #bbb; }
-    thead tr { border-bottom: 1pt solid #666; }
-    input[type="text"], input[type="number"] {
-      width: 100%;
-      border: none;
-      background: transparent;
-      box-shadow: none;
-      padding: 0 2px;
-      font-size: 10px;
-      box-sizing: border-box;
+  /* 단가(좁게), 금액(조금 넓게) */
+  th.col-mu,
+  td.col-mu,
+  th.col-lu,
+  td.col-lu,
+  th.col-eu,
+  td.col-eu,
+  th.col-tu,
+  td.col-tu {
+    width: 5.5%;
+  }
+
+  th.col-ma,
+  td.col-ma,
+  th.col-la,
+  td.col-la,
+  th.col-ea,
+  td.col-ea,
+  th.col-ta,
+  td.col-ta {
+    width: 6.5%;
+  }
+
+  th.col-note,
+  td.col-note {
+    width: 9%;
+  }
+
+  tr.total-row td {
+    font-weight: 700;
+    background: var(--bg);
+  }
+
+  tfoot td {
+    border-top: 2px solid rgba(17, 24, 39, 0.14);
+  }
+
+  /* 해상도 줄어들면 그때만 스크롤 허용(안전장치) */
+  @media (max-width: 1500px) {
+    .table-wrap {
+      overflow-x: auto;
     }
-    .estimate-wrap { margin: 0 !important; box-shadow: none !important; border: none !important; width: 100% !important; }
+
+    table {
+      min-width: 1400px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .meta-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
-<%
-  function fmt(n) {
-    if (n === null || n === undefined || n === "") return "";
-    const num = Number(n);
-    if (isNaN(num)) return n;
-    return num.toLocaleString("ko-KR");
-  }
-%>
+<% function fmt(n){ if (n===null || n===undefined || n==="" ) return "" ; const num=Number(n); if (isNaN(num)) return n;
+  return num.toLocaleString("ko-KR"); } let sumMaterialAmount=0, sumLaborAmount=0, sumExpenseAmount=0, sumTotalAmount=0;
+  (items || []).forEach((row)=>{
+  sumMaterialAmount += Number(row.material_amount || 0);
+  sumLaborAmount += Number(row.labor_amount || 0);
+  sumExpenseAmount += Number(row.expense_amount || 0);
+  sumTotalAmount += Number(row.total_amount || 0);
+  });
+  %>
 
-<div class="estimate-page">
-  <div class="estimate-wrap">
-    <h1>견 적 내 역 서</h1>
-
-    <div class="header-row">
-      <label for="title">공사명 :</label>
-      <input type="text" id="title" class="header-input" readonly value="<%= estimate.title %>" />
-      &nbsp;&nbsp;
-      <label for="client_name">발주처 :</label>
-      <input type="text" id="client_name" class="header-input" readonly value="<%= estimate.client_name || '' %>" />
+  <div class="card">
+    <div class="title">
+      <%= estimate.title %>
     </div>
 
-    <div class="table-wrapper">
+    <div class="meta-grid">
+      <div>
+        <div class="kv">
+          <div class="k">견적번호</div>
+          <div class="v">
+            <%= estimate.estimate_no || "-" %>
+          </div>
+        </div>
+        <div class="kv">
+          <div class="k">거래처</div>
+          <div class="v">
+            <%= estimate.client_name || "-" %>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="kv">
+          <div class="k">견적금액</div>
+          <div class="v">
+            <%= estimate.total_amount ? estimate.total_amount.toLocaleString("ko-KR") + " 원" : "-" %>
+          </div>
+        </div>
+        <div class="kv">
+          <div class="k">등록일</div>
+          <div class="v">
+            <%= estimate.created_at ? String(estimate.created_at).substring(0,19) : "-" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="title" style="font-size:13px; margin-bottom:8px;">견적 내역</div>
+
+    <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th rowspan="2" class="col-name">품 명</th>
-            <th rowspan="2" class="col-spec">규 격</th>
+            <th rowspan="2" class="col-name">품명</th>
+            <th rowspan="2" class="col-spec">규격</th>
             <th rowspan="2" class="col-unit">단위</th>
             <th rowspan="2" class="col-qty">수량</th>
-            <th colspan="2">재 료 비</th>
-            <th colspan="2">노 무 비</th>
-            <th colspan="2">경 비</th>
-            <th colspan="2">합 계</th>
-            <th rowspan="2" class="col-note">비 고</th>
+            <th colspan="2">재료비</th>
+            <th colspan="2">노무비</th>
+            <th colspan="2">경비</th>
+            <th colspan="2">합계</th>
+            <th rowspan="2" class="col-note">비고</th>
           </tr>
-          <tr class="sub-header">
-            <th class="col-mu">단가</th><th class="col-ma">금액</th>
-            <th class="col-lu">단가</th><th class="col-la">금액</th>
-            <th class="col-eu">단가</th><th class="col-ea">금액</th>
-            <th class="col-tu">단가</th><th class="col-ta">금액</th>
+          <tr>
+            <th class="col-mu">단가</th>
+            <th class="col-ma">금액</th>
+            <th class="col-lu">단가</th>
+            <th class="col-la">금액</th>
+            <th class="col-eu">단가</th>
+            <th class="col-ea">금액</th>
+            <th class="col-tu">단가</th>
+            <th class="col-ta">금액</th>
           </tr>
         </thead>
 
         <tbody>
-          <%
-            let sumMaterialAmount = 0;
-            let sumLaborAmount    = 0;
-            let sumExpenseAmount  = 0;
-            let sumTotalAmount    = 0;
-          %>
-
-          <% items.forEach(function(row) {
-              sumMaterialAmount += Number(row.material_amount || 0);
-              sumLaborAmount    += Number(row.labor_amount || 0);
-              sumExpenseAmount  += Number(row.expense_amount || 0);
-              sumTotalAmount    += Number(row.total_amount || 0);
-          %>
+          <% (items || []).forEach(function(row){ %>
             <tr>
-              <td class="text-left col-name"><input type="text" value="<%= row.item_name || '' %>" readonly /></td>
-              <td class="text-left col-spec"><input type="text" value="<%= row.spec || '' %>" readonly /></td>
-              <td class="col-unit"><input type="text" value="<%= row.unit || '' %>" readonly /></td>
-              <td class="col-qty"><input type="text" value="<%= fmt(row.qty) %>" readonly /></td>
+              <td class="text-left col-name">
+                <%= row.item_name || "" %>
+              </td>
+              <td class="text-left col-spec">
+                <%= row.spec || "" %>
+              </td>
+              <td class="col-unit">
+                <%= row.unit || "" %>
+              </td>
+              <td class="col-qty text-right">
+                <%= fmt(row.qty) %>
+              </td>
 
-              <td class="col-mu"><input type="text" value="<%= fmt(row.material_unit) %>" readonly /></td>
-              <td class="col-ma"><input type="text" value="<%= fmt(row.material_amount) %>" readonly /></td>
+              <td class="col-mu text-right">
+                <%= fmt(row.material_unit) %>
+              </td>
+              <td class="col-ma text-right">
+                <%= fmt(row.material_amount) %>
+              </td>
 
-              <td class="col-lu"><input type="text" value="<%= fmt(row.labor_unit) %>" readonly /></td>
-              <td class="col-la"><input type="text" value="<%= fmt(row.labor_amount) %>" readonly /></td>
+              <td class="col-lu text-right">
+                <%= fmt(row.labor_unit) %>
+              </td>
+              <td class="col-la text-right">
+                <%= fmt(row.labor_amount) %>
+              </td>
 
-              <td class="col-eu"><input type="text" value="<%= fmt(row.expense_unit) %>" readonly /></td>
-              <td class="col-ea"><input type="text" value="<%= fmt(row.expense_amount) %>" readonly /></td>
+              <td class="col-eu text-right">
+                <%= fmt(row.expense_unit) %>
+              </td>
+              <td class="col-ea text-right">
+                <%= fmt(row.expense_amount) %>
+              </td>
 
-              <td class="col-tu"><input type="text" value="<%= fmt(row.total_unit) %>" readonly /></td>
-              <td class="col-ta"><input type="text" value="<%= fmt(row.total_amount) %>" readonly /></td>
+              <td class="col-tu text-right">
+                <%= fmt(row.total_unit) %>
+              </td>
+              <td class="col-ta text-right">
+                <%= fmt(row.total_amount) %>
+              </td>
 
-              <td class="text-left col-note"><input type="text" value="<%= row.note || '' %>" readonly /></td>
+              <td class="text-left col-note">
+                <%= row.note || "" %>
+              </td>
             </tr>
-          <% }); %>
+            <% }) %>
         </tbody>
 
         <tfoot>
           <tr class="total-row">
-            <td class="col-name total-label">합계</td>
-            <td class="col-spec"></td>
-            <td class="col-unit"></td>
-            <td class="col-qty"></td>
-
-            <td class="col-mu"></td>
-            <td class="col-ma"><input type="text" value="<%= fmt(sumMaterialAmount) %>" readonly /></td>
-
-            <td class="col-lu"></td>
-            <td class="col-la"><input type="text" value="<%= fmt(sumLaborAmount) %>" readonly /></td>
-
-            <td class="col-eu"></td>
-            <td class="col-ea"><input type="text" value="<%= fmt(sumExpenseAmount) %>" readonly /></td>
-
-            <td class="col-tu"></td>
-            <td class="col-ta"><input type="text" value="<%= fmt(sumTotalAmount) %>" readonly /></td>
-
-            <td class="col-note"></td>
+            <td colspan="4" class="text-center">합계</td>
+            <td></td>
+            <td class="text-right">
+              <%= fmt(sumMaterialAmount) %>
+            </td>
+            <td></td>
+            <td class="text-right">
+              <%= fmt(sumLaborAmount) %>
+            </td>
+            <td></td>
+            <td class="text-right">
+              <%= fmt(sumExpenseAmount) %>
+            </td>
+            <td></td>
+            <td class="text-right">
+              <%= fmt(sumTotalAmount) %>
+            </td>
+            <td></td>
           </tr>
         </tfoot>
       </table>
     </div>
-
-    <div class="actions">
-      <a href="/estimate" class="estimate-btn estimate-btn-outline">목록</a>
-      <a href="/estimate/<%= estimate.id %>/edit" class="estimate-btn">수정</a>
-
-      <a href="/estimate/<%= estimate.id %>/pdf" class="estimate-btn" target="_blank" width=1100 height=800>PDF 출력</a>
-      <!-- <button type="button" class="estimate-btn"
-        onclick="window.open('/estimate/<%= estimate.id %>/print','_blank','width=1100,height=800')">
-        인쇄
-      </button> -->
-
-      <button type="button" class="estimate-btn"
-        onclick="window.location='/estimate/<%= estimate.id %>/excel'">
-        엑셀 다운로드
-      </button>
-    </div>
   </div>
-</div>

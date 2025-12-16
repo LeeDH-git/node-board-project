@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title><%= (typeof title !== 'undefined' ? title : "현장 관리 시스템") %></title>
+  <title>
+    <%= (typeof title !=='undefined' ? title : "현장 관리 시스템" ) %>
+  </title>
 
   <style>
     /* ===== Noonnu Paperozi (Paperlogy) ===== */
@@ -14,48 +17,56 @@
       font-weight: 100;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2') format('woff2');
       font-weight: 200;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2') format('woff2');
       font-weight: 300;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2');
       font-weight: 400;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2') format('woff2');
       font-weight: 500;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
       font-weight: 600;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');
       font-weight: 700;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
       font-weight: 800;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Paperozi';
       src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2');
@@ -64,7 +75,7 @@
     }
 
     /* ===== Theme Tokens ===== */
-    :root{
+    :root {
       --bg: #F9FAFB;
       --panel: #FFFFFF;
       --text: #111827;
@@ -74,34 +85,39 @@
       --primary: #111827;
       --primaryHover: #0B1220;
       --radius: 12px;
-      --shadow: 0 1px 2px rgba(0,0,0,.05);
-      --ring: 0 0 0 4px rgba(17,24,39,.14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --ring: 0 0 0 4px rgba(17, 24, 39, 0.14);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    body{
+    body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
       font-family: Paperozi,
-                   -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   Roboto, "Noto Sans KR", "Apple SD Gothic Neo",
-                   "Malgun Gothic", Arial, sans-serif;
+        -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Noto Sans KR", "Apple SD Gothic Neo",
+        "Malgun Gothic", Arial, sans-serif;
       font-size: 14.5px;
       font-weight: 400;
       line-height: 1.6;
     }
 
-    a{ color: inherit; text-decoration: none; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-    .app{
+    .app {
       min-height: 100vh;
       display: flex;
     }
 
     /* ===== Sidebar ===== */
-    .sidebar{
+    .sidebar {
       width: 256px;
       background: var(--panel);
       border-right: 1px solid var(--border);
@@ -114,7 +130,7 @@
       gap: 16px;
     }
 
-    .brand{
+    .brand {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -122,26 +138,26 @@
       border-radius: 10px;
     }
 
-    /* ✅ 로고 영역 */
-    .brand-logo{
+    .brand-logo {
       width: 28px;
       height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .brand-logo img{
+
+    .brand-logo img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
     }
 
-    .brand-title{
+    .brand-title {
       font-weight: 700;
       font-size: 14px;
     }
 
-    .nav-title{
+    .nav-title {
       font-size: 12px;
       color: var(--muted);
       margin: 6px 10px;
@@ -149,12 +165,13 @@
       letter-spacing: .06em;
     }
 
-    .nav{
+    .nav {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .nav a{
+
+    .nav a {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -162,38 +179,45 @@
       border-radius: 10px;
       color: var(--text);
     }
-    .nav a:hover{ background: var(--hover); }
-    .nav a.active{
+
+    .nav a:hover {
+      background: var(--hover);
+    }
+
+    .nav a.active {
       background: var(--hover);
       font-weight: 700;
     }
 
     /* ===== Main ===== */
-    .main{
+    .main {
       flex: 1;
-      padding: 24px 28px;
+
+      /* ✅ C: 실제 콘텐츠 폭을 넓히기 위해 패딩을 살짝 줄임 */
+      padding: 18px 22px;
     }
 
-    .topbar{
+    .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
-    .page-title{
+    .page-title {
       font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.01em;
       margin: 0;
     }
-    .page-sub{
+
+    .page-sub {
       margin: 2px 0 0;
       color: var(--muted);
       font-size: 13px;
     }
 
-    .btn{
+    .btn {
       height: 36px;
       padding: 0 14px;
       border-radius: 10px;
@@ -202,28 +226,51 @@
       color: var(--text);
       cursor: pointer;
       font-weight: 500;
-    }
-    .btn:hover{ background: var(--bg); }
 
-    .btn-primary{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--bg);
+    }
+
+    .btn-primary {
       border-color: transparent;
       background: var(--primary);
       color: #fff;
       font-weight: 600;
     }
-    .btn-primary:hover{ background: var(--primaryHover); }
 
-    .panel{
+    .btn-primary:hover {
+      background: var(--primaryHover);
+    }
+
+    .panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 18px;
+
+      /* ✅ C: 패딩을 줄여 테이블 실사용 폭 확대 */
+      padding: 14px;
     }
 
-    @media (max-width: 900px){
-      .sidebar{ display:none; }
-      .main{ padding: 18px 14px; }
+    @media (max-width: 900px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        padding: 16px 12px;
+      }
+
+      .panel {
+        padding: 12px;
+      }
     }
   </style>
 </head>
@@ -245,12 +292,17 @@
         <div class="nav-title">Manage</div>
         <nav class="nav">
           <a href="/" class="<%= (typeof active !== 'undefined' && active === 'home') ? 'active' : '' %>">Home</a>
-          <a href="/estimate" class="<%= (typeof active !== 'undefined' && active === 'estimate') ? 'active' : '' %>">견적관리</a>
-          <a href="/contract" class="<%= (typeof active !== 'undefined' && active === 'contract') ? 'active' : '' %>">계약관리</a>
-          <a href="/progress" class="<%= (typeof active !== 'undefined' && active === 'progress') ? 'active' : '' %>">기성관리</a>
+          <a href="/estimate"
+            class="<%= (typeof active !== 'undefined' && active === 'estimate') ? 'active' : '' %>">견적관리</a>
+          <a href="/contract"
+            class="<%= (typeof active !== 'undefined' && active === 'contract') ? 'active' : '' %>">계약관리</a>
+          <a href="/progress"
+            class="<%= (typeof active !== 'undefined' && active === 'progress') ? 'active' : '' %>">기성관리</a>
           <a href="/staff" class="<%= (typeof active !== 'undefined' && active === 'staff') ? 'active' : '' %>">직원관리</a>
-          <a href="/client" class="<%= (typeof active !== 'undefined' && active === 'client') ? 'active' : '' %>">거래처관리</a>
-          <a href="/library" class="<%= (typeof active !== 'undefined' && active === 'library') ? 'active' : '' %>">자료관리</a>
+          <a href="/client"
+            class="<%= (typeof active !== 'undefined' && active === 'client') ? 'active' : '' %>">거래처관리</a>
+          <a href="/library"
+            class="<%= (typeof active !== 'undefined' && active === 'library') ? 'active' : '' %>">자료관리</a>
         </nav>
       </div>
     </aside>
@@ -259,16 +311,18 @@
       <div class="topbar">
         <div>
           <h1 class="page-title">
-            <%= (typeof headerTitle !== 'undefined' ? headerTitle : "현장 관리 시스템") %>
+            <%= (typeof headerTitle !=='undefined' ? headerTitle : "현장 관리 시스템" ) %>
           </h1>
-          <% if (typeof headerSub !== 'undefined' && headerSub) { %>
-            <p class="page-sub"><%= headerSub %></p>
-          <% } %>
+          <% if (typeof headerSub !=='undefined' && headerSub) { %>
+            <p class="page-sub">
+              <%= headerSub %>
+            </p>
+            <% } %>
         </div>
 
-        <% if (typeof headerAction !== 'undefined' && headerAction) { %>
+        <% if (typeof headerAction !=='undefined' && headerAction) { %>
           <div><%- headerAction %></div>
-        <% } %>
+          <% } %>
       </div>
 
       <div class="panel">
@@ -277,4 +331,5 @@
     </main>
   </div>
 </body>
+
 </html>
