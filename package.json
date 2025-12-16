@@ -10,11 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.5.0",
     "ejs": "^3.1.10",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.2",
     "multer": "^2.0.2",
     "puppeteer": "^24.33.0"
   }
