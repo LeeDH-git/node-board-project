@@ -1,7 +1,22 @@
-const db = require("../db");
+// // repositories/userRepository.js
+// const db = require("../db");
 
-async function findByUsername(username) {
-  return db.get("SELECT * FROM users WHERE username = ?", [username]);
-}
+// function findByUsername(username) {
+//   return db
+//     .prepare(`SELECT * FROM users WHERE username = ? LIMIT 1`)
+//     .get(username);
+// }
 
-module.exports = { findByUsername };
+// function createAdmin({ staff_id = null, username, password_hash }) {
+//   const stmt = db.prepare(`
+//     INSERT INTO users (staff_id, username, password_hash, role, is_active)
+//     VALUES (?, ?, ?, 'admin', 1)
+//   `);
+//   const info = stmt.run(staff_id, username, password_hash);
+//   return info.lastInsertRowid;
+// }
+
+// module.exports = {
+//   findByUsername,
+//   createAdmin,
+// };

@@ -22,16 +22,21 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // 로그인 세션
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "dev-secret-change-me",
+    secret: "change-this-to-a-long-random-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true },
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      // https 환경이면 true 권장
+      secure: false,
+    },
   })
 );
 
 // 로그인 정보를 모든 EJS에서 쓰도록
 app.use((req, res, next) => {
-  res.locals.me = req.session?.user || null;
+  res.locals.currentUser = req.session.user || null;
   next();
 });
 

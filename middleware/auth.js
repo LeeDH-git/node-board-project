@@ -1,13 +1,10 @@
-function requireLogin(req, res, next) {
-  if (!req.session.user) return res.redirect("/login");
-  next();
-}
+// // middleware/auth.js
+// function requireAdmin(req, res, next) {
+//   const u = req.session.user;
+//   if (!u) return res.redirect("/admin/login");
+//   if (u.role !== "admin") return res.status(403).send("Forbidden");
+//   if (u.is_active !== 1) return res.redirect("/admin/login");
+//   next();
+// }
 
-function requireAdmin(req, res, next) {
-  if (!req.session.user) return res.redirect("/login");
-  if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
-  next();
-}
-
-module.exports = { requireLogin, requireAdmin };
+// module.exports = { requireAdmin };

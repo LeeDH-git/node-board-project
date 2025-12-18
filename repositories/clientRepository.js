@@ -4,19 +4,27 @@ function list({ q = "", page = 1, perPage = 16 }) {
   const kw = `%${q}%`;
   const offset = (page - 1) * perPage;
 
-  const total = db.prepare(`
+  const total = db
+    .prepare(
+      `
     SELECT COUNT(*) AS cnt
     FROM clients
     WHERE name LIKE ? OR biz_no LIKE ? OR phone LIKE ?
-  `).get(kw, kw, kw).cnt;
+  `
+    )
+    .get(kw, kw, kw).cnt;
 
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     SELECT *
     FROM clients
     WHERE name LIKE ? OR biz_no LIKE ? OR phone LIKE ?
     ORDER BY id DESC
     LIMIT ? OFFSET ?
-  `).all(kw, kw, kw, perPage, offset);
+  `
+    )
+    .all(kw, kw, kw, perPage, offset);
 
   return { total, rows };
 }
@@ -45,11 +53,13 @@ function create(data) {
 }
 
 function update(id, data) {
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE clients
     SET name = ?, biz_no = ?, ceo_name = ?, phone = ?, email = ?, address = ?, memo = ?
     WHERE id = ?
-  `).run(
+  `
+  ).run(
     data.name,
     data.biz_no || null,
     data.ceo_name || null,

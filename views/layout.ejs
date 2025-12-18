@@ -361,6 +361,69 @@
     font-size: 12px;
     color: #6b7280;
   }
+  /* ===== Sidebar User Card ===== */
+  .user-card{
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .user-card-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar{
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    letter-spacing: .02em;
+  }
+
+  .user-meta{
+    min-width: 0;
+    flex: 1;
+  }
+
+  .user-name{
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-sub{
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-actions{
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-sm{
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
 
   </style>
 </head>
@@ -394,6 +457,51 @@
           <a href="/library"
             class="<%= (typeof active !== 'undefined' && active === 'library') ? 'active' : '' %>">자료관리</a>
         </nav>
+          <!-- 로그인 상태 UI -->
+          <div style="margin-top: 12px;">
+            <div class="user-card">
+              <% if (currentUser) { %>
+          
+                <div class="user-card-row">
+                  <!-- <div class="user-avatar">
+                    <%= (currentUser.username || 'U' ).slice(0, 1).toUpperCase() %>
+                  </div> -->
+                  <div class="user-name">
+                    <%= currentUser.name %>
+                  </div>
+                  <div class="user-meta">
+                    <div class="user-name">
+                      <%= currentUser.name || currentUser.username %>
+                    </div>
+                    <div class="user-sub">
+                      <%= currentUser.role ? currentUser.role : 'user' %>
+                        · 로그인 중
+                    </div>
+                  </div>
+                </div>
+          
+                <form method="post" action="/logout" class="user-actions">
+                  <button type="submit" class="btn btn-sm">로그아웃</button>
+                </form>
+          
+                <% } else { %>
+          
+                  <div class="user-card-row">
+                    <div class="user-avatar">?</div>
+                    <div class="user-meta">
+                      <div class="user-name">미로그인</div>
+                      <div class="user-sub">로그인이 필요합니다</div>
+                    </div>
+                  </div>
+          
+                  <div class="user-actions">
+                    <a href="/login" class="btn btn-sm btn-primary">로그인</a>
+                  </div>
+          
+                  <% } %>
+            </div>
+          </div>
+
       </div>
     </aside>
 
