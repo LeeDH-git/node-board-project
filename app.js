@@ -53,6 +53,7 @@ const contractRouter = require("./routes/contractRoutes");
 const libraryRouter = require("./routes/libraryRoutes");
 const clientRouter = require("./routes/clientRoutes");
 const progressRouter = require("./routes/progressRoutes");
+const staffRouter = require("./routes/staffRoutes");
 
 // ✅ 인증 라우터 연결
 app.use("/", authRouter);
@@ -73,6 +74,7 @@ app.use("/contract", requireAuth, contractRouter);
 app.use("/library", requireAuth, libraryRouter);
 app.use("/client", requireAuth, clientRouter);
 app.use("/progress", requireAuth, progressRouter);
+app.use("/staff", requireAuth, staffRouter);
 
 // 서버 시작
 app.listen(PORT, () => {

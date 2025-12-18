@@ -1,0 +1,406 @@
+<!-- views/staff_form.ejs : progress_show UI 톤 적용(등록/수정 공용) -->
+<style>
+  :root {
+    --bg: #F9FAFB;
+    --panel: #FFFFFF;
+    --text: #111827;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --ring: 0 0 0 4px rgba(17, 24, 39, .14);
+  }
+
+  .c-card {
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+  }
+
+  .c-card+.c-card {
+    margin-top: 12px;
+  }
+
+  .c-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .c-sub {
+    margin: -4px 0 12px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .c-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* kv 형태를 "입력폼"으로 확장 */
+  .c-kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+    align-items: center;
+  }
+
+  .c-kv:last-child {
+    border-bottom: none;
+  }
+
+  .c-k {
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+
+  .c-v {
+    color: var(--text);
+  }
+
+  .req {
+    color: #ef4444;
+    font-weight: 800;
+  }
+
+  /* 입력 */
+  .c-input,
+  .c-select {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+  }
+
+  .c-input:focus,
+  .c-select:focus {
+    outline: none;
+    border-color: var(--text);
+    box-shadow: var(--ring);
+  }
+
+  /* 상단 버튼줄 */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .btn-warn {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.10);
+    color: #92400e;
+    font-weight: 750;
+  }
+
+  .btn-warn:hover {
+    background: rgba(245, 158, 11, 0.14);
+  }
+
+  /* 요약 */
+  .c-section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .c-summary {
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+  }
+
+  .c-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .c-sitem {
+    padding: 2px 4px;
+  }
+
+  .c-sk {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 750;
+    margin-bottom: 6px;
+  }
+
+  .c-sv {
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+
+  .c-ssub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #9CA3AF;
+  }
+
+  /* 칩 */
+  .c-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .c-chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid rgba(17, 24, 39, .12);
+    border-radius: 999px;
+    font-size: 12.5px;
+    background: #fff;
+  }
+
+  .c-chip .c-k {
+    color: var(--muted);
+    font-weight: 650;
+  }
+
+  .c-chip .c-v {
+    color: var(--text);
+    font-weight: 750;
+  }
+
+  /* 하단 액션 */
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid rgba(0, 0, 0, .08);
+    white-space: nowrap;
+  }
+
+  .badge-green {
+    background: rgba(16, 185, 129, .12);
+    color: #065f46;
+    border-color: rgba(16, 185, 129, .22);
+  }
+
+  .badge-gray {
+    background: rgba(107, 114, 128, .12);
+    color: #374151;
+    border-color: rgba(107, 114, 128, .22);
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  @media (max-width: 900px) {
+    .c-meta {
+      grid-template-columns: 1fr;
+    }
+
+    .c-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .c-kv {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      align-items: start;
+    }
+  }
+
+  html,
+  body {
+    background: var(--bg) !important;
+  }
+</style>
+
+<% function fmt(n){ if (n===null || n===undefined || n==='' ) return '-' ; const num=Number(n); if (isNaN(num)) return
+  String(n); return num.toLocaleString("ko-KR"); } const isEdit=(mode==='edit' ); const
+  isActive=Number(staff?.is_active)===1; const startDate=staff?.start_date ? String(staff.start_date).substring(0,10)
+  : '-' ; const endDate=staff?.end_date ? String(staff.end_date).substring(0,10) : '-' ; %>
+
+  <div class="btn-row">
+    <a class="btn" href="/staff">목록</a>
+
+    <% if (isEdit) { %>
+      <a class="btn" href="/staff/<%= staff.id %>">상세</a>
+
+      <form method="post" action="/staff/<%= staff.id %>/toggle-active" style="display:inline;"
+        onsubmit="return confirm('<%= isActive ? '퇴사 처리할까요?' : '복직 처리할까요?' %>');">
+        <% if (isActive) { %>
+          <button class="btn btn-warn" type="submit">퇴사 처리</button>
+          <% } else { %>
+            <button class="btn btn-primary" type="submit">복직 처리</button>
+            <% } %>
+      </form>
+      <% } %>
+  </div>
+
+  <form method="post" action="<%= isEdit ? ('/staff/' + staff.id) : '/staff' %>">
+    <!-- ✅ 카드 1: 기본 정보 -->
+    <div class="c-card">
+      <div class="c-title">
+        <%= isEdit ? '직원 수정' : '직원 등록' %>
+          <% if (isEdit) { %>
+            <span class="muted" style="margin-left:10px; font-size:12.5px;">ID:</span>
+            <span class="mono" style="font-size:12.5px; color:var(--muted);">
+              <%= staff.id %>
+            </span>
+            <% if (isActive) { %>
+              <span class="badge badge-green" style="margin-left:10px;">재직</span>
+              <% } else { %>
+                <span class="badge badge-gray" style="margin-left:10px;">퇴사</span>
+                <% } %>
+                  <% } %>
+      </div>
+      <div class="c-sub">
+        <%= isEdit ? '직원 정보를 수정합니다.' : '직원 기본정보를 등록합니다.' %>
+      </div>
+
+      <div class="c-meta">
+        <!-- 좌측 -->
+        <div>
+          <div class="c-kv">
+            <div class="c-k">이름 <span class="req">*</span></div>
+            <div class="c-v">
+              <input class="c-input" name="name" required value="<%= staff.name || '' %>" />
+            </div>
+          </div>
+
+          <div class="c-kv">
+            <div class="c-k">직무/역할</div>
+            <div class="c-v">
+              <input class="c-input" name="role" value="<%= staff.role || '' %>" placeholder="예: 안전관리자, 형틀공, 신호수 등" />
+            </div>
+          </div>
+
+          <div class="c-kv">
+            <div class="c-k">일급</div>
+            <div class="c-v">
+              <input class="c-input" name="daily_wage" inputmode="numeric" value="<%= staff.daily_wage || '' %>"
+                placeholder="숫자만" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측 -->
+        <div>
+          <div class="c-kv">
+            <div class="c-k">입사일</div>
+            <div class="c-v">
+              <input class="c-input" name="start_date" value="<%= staff.start_date || '' %>" placeholder="YYYY-MM-DD" />
+            </div>
+          </div>
+
+          <div class="c-kv">
+            <div class="c-k">퇴사일</div>
+            <div class="c-v">
+              <input class="c-input" name="end_date" value="<%= staff.end_date || '' %>" placeholder="YYYY-MM-DD" />
+            </div>
+          </div>
+
+          <div class="c-kv">
+            <div class="c-k">상태</div>
+            <div class="c-v">
+              <select class="c-select" name="is_active">
+                <option value="1" <%=Number(staff.is_active)===1 ? 'selected' : '' %>>재직</option>
+                <option value="0" <%=Number(staff.is_active)===0 ? 'selected' : '' %>>퇴사</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">
+          <%= isEdit ? '저장' : '등록' %>
+        </button>
+        <% if (isEdit) { %>
+          <a class="btn btn-ghost" href="/staff/<%= staff.id %>">취소</a>
+          <% } else { %>
+            <a class="btn btn-ghost" href="/staff">취소</a>
+            <% } %>
+      </div>
+    </div>
+
+    <!-- ✅ 카드 2: 요약(입력값 미리보기) -->
+    <div class="c-card">
+      <div class="c-section-title">요약</div>
+
+      <div class="c-summary">
+        <div class="c-summary-grid">
+          <div class="c-sitem">
+            <div class="c-sk">재직 상태</div>
+            <div class="c-sv">
+              <%= (Number(staff.is_active)===1 ? '재직' : '퇴사' ) %>
+            </div>
+            <div class="c-ssub">저장 시 상태가 반영됩니다</div>
+          </div>
+
+          <div class="c-sitem">
+            <div class="c-sk">일급</div>
+            <div class="c-sv">
+              <%= (staff.daily_wage ? fmt(staff.daily_wage) : '-' ) %> 원
+            </div>
+            <div class="c-ssub">노무비/정산 기준</div>
+          </div>
+
+          <div class="c-sitem">
+            <div class="c-sk">근무기간</div>
+            <div class="c-sv">
+              <%= startDate %> ~ <%= endDate %>
+            </div>
+            <div class="c-ssub">입/퇴사일 입력 기준</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="c-chips">
+        <div class="c-chip">
+          <span class="c-k">모드</span>
+          <span class="c-v">
+            <%= isEdit ? '수정' : '등록' %>
+          </span>
+        </div>
+        <div class="c-chip">
+          <span class="c-k">이름</span>
+          <span class="c-v">
+            <%= staff.name || '-' %>
+          </span>
+        </div>
+        <div class="c-chip">
+          <span class="c-k">직무</span>
+          <span class="c-v">
+            <%= staff.role || '-' %>
+          </span>
+        </div>
+      </div>
+    </div>
+  </form>

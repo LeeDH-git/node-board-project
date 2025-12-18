@@ -1,0 +1,317 @@
+<!-- views/staff_list.ejs : progress_list UI 스타일로 통일 -->
+<style>
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-left {
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    width: 100%;
+  }
+
+  .search-form input[type="text"] {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    min-width: 260px;
+  }
+
+  .search-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--text);
+    box-shadow: var(--ring);
+  }
+
+  .search-form select {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    min-width: 160px;
+  }
+
+  .search-form select:focus {
+    outline: none;
+    border-color: var(--text);
+    box-shadow: var(--ring);
+  }
+
+  .table-scroll {
+    margin-top: 12px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+
+  thead th {
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 650;
+    font-size: 12.5px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr:hover {
+    background: var(--bg);
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 650;
+  }
+
+  .link:hover {
+    text-decoration: underline;
+  }
+
+  .btn-ghost {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .icon-btn:hover {
+    background: var(--bg);
+  }
+
+  .icon-btn img {
+    width: 16px;
+    height: 16px;
+    opacity: .9;
+  }
+
+  .badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid rgba(0, 0, 0, .08);
+    white-space: nowrap;
+  }
+
+  .badge-green {
+    background: rgba(16, 185, 129, .12);
+    color: #065f46;
+    border-color: rgba(16, 185, 129, .22);
+  }
+
+  .badge-gray {
+    background: rgba(107, 114, 128, .12);
+    color: #374151;
+    border-color: rgba(107, 114, 128, .22);
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  @media (max-width: 520px) {
+    .search-form input[type="text"] {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .search-form select {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <form method="get" action="/staff" class="search-form">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:12px; color:var(--muted);">검색</label>
+        <input type="text" name="q" placeholder="이름/직무/계정ID 검색" value="<%= (typeof q !== 'undefined' ? q : '') %>" />
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:12px; color:var(--muted);">상태</label>
+        <select name="active">
+          <option value="" <%=(!active ? 'selected' : '' ) %>>전체</option>
+          <option value="1" <%=(active==='1' ? 'selected' : '' ) %>>재직</option>
+          <option value="0" <%=(active==='0' ? 'selected' : '' ) %>>퇴사</option>
+        </select>
+      </div>
+
+      <button class="btn" type="submit">검색</button>
+      <button class="btn" type="button" onclick="window.location.href='/staff'">새로고침</button>
+    </form>
+  </div>
+
+  <div class="toolbar-right">
+    <a class="btn btn-primary" href="/staff/new">직원 등록</a>
+  </div>
+</div>
+
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="text-center" style="width:80px;">ID</th>
+        <th style="width:160px;">이름</th>
+        <th style="width:180px;">직무/역할</th>
+        <th class="text-right" style="width:140px;">일급</th>
+        <th class="text-center" style="width:110px;">상태</th>
+        <th style="width:220px;">연결 계정</th>
+        <th class="text-center" style="width:130px;">등록일</th>
+        <th class="text-center" style="width:110px;">관리</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% if (staffs && staffs.length> 0) { %>
+        <% staffs.forEach((s)=> { %>
+          <tr>
+            <td class="text-center">
+              <%= s.id %>
+            </td>
+
+            <td class="nowrap">
+              <a class="link" href="/staff/<%= s.id %>">
+                <%= s.name %>
+              </a>
+            </td>
+
+            <td>
+              <%= s.role || '-' %>
+            </td>
+
+            <td class="text-right nowrap">
+              <%= s.daily_wage ? Number(s.daily_wage).toLocaleString("ko-KR") : '-' %>
+            </td>
+
+            <td class="text-center">
+              <% if (s.is_active===1) { %>
+                <span class="badge badge-green">재직</span>
+                <% } else { %>
+                  <span class="badge badge-gray">퇴사</span>
+                  <% } %>
+            </td>
+
+            <td class="nowrap">
+              <% if (s.user_username) { %>
+                <span class="mono">
+                  <%= s.user_username %>
+                </span>
+                <span style="color:var(--muted);">(<%= s.user_role || 'admin' %>)</span>
+                <% } else { %>
+                  <span style="color:var(--muted);">-</span>
+                  <% } %>
+            </td>
+
+            <td class="text-center nowrap">
+              <%= s.created_at ? String(s.created_at).substring(0, 10) : '' %>
+            </td>
+
+            <td class="text-center">
+              <div class="action-buttons">
+                <a class="icon-btn" href="/staff/<%= s.id %>" title="상세">
+                  <img src="/icons/show.png" alt="show" />
+                </a>
+                <a class="icon-btn" href="/staff/<%= s.id %>/edit" title="수정">
+                  <img src="/icons/edit.png" alt="edit" />
+                </a>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="text-center" style="color: var(--muted); padding: 18px;">
+                  등록된 직원이 없습니다.
+                </td>
+              </tr>
+              <% } %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // show 아이콘이 없으면 edit만 쓰거나, show.png를 public/icons에 추가하세요.
+</script>

@@ -133,8 +133,6 @@ db.exec(`
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   );
 
-  /* CREATE INDEX IF NOT EXISTS ix_staff_active ON staff(is_active); */
-
   CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id      INTEGER UNIQUE,          -- 직원과 1:1 연결(선택)
@@ -145,8 +143,6 @@ db.exec(`
     created_at    TEXT DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL
   );
-
-  /* CREATE INDEX IF NOT EXISTS ix_users_active ON users(is_active); */
 
   /* =========================
      직원 자격증 파일(다중 첨부)

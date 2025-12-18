@@ -1,0 +1,488 @@
+<style>
+  :root {
+    --bg: #F9FAFB;
+    --panel: #FFFFFF;
+    --text: #111827;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --ring: 0 0 0 4px rgba(17, 24, 39, .14);
+  }
+
+  /* ===== 카드(견적상세 톤) ===== */
+  .c-card {
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+  }
+
+  .c-card+.c-card {
+    margin-top: 12px;
+  }
+
+  .c-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .c-sub {
+    margin: -4px 0 12px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* ===== 2열 kv ===== */
+  .c-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .c-kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+  }
+
+  .c-kv:last-child {
+    border-bottom: none;
+  }
+
+  .c-k {
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+
+  .c-v {
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 650;
+    word-break: break-word;
+  }
+
+  /* ===== 요약 3칸 ===== */
+  .c-summary {
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+  }
+
+  .c-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .c-sitem {
+    padding: 2px 4px;
+  }
+
+  .c-sk {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 750;
+    margin-bottom: 6px;
+  }
+
+  .c-sv {
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+
+  .c-ssub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #9CA3AF;
+  }
+
+  .c-section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  /* ===== 칩 ===== */
+  .c-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .c-chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 999px;
+    font-size: 12.5px;
+    background: #fff;
+  }
+
+  .c-chip .c-k {
+    color: var(--muted);
+    font-weight: 650;
+  }
+
+  .c-chip .c-v {
+    color: var(--text);
+    font-weight: 750;
+  }
+
+  /* ===== 파일 테이블 ===== */
+  .table-scroll {
+    margin-top: 10px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 860px;
+  }
+
+  thead th {
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 650;
+    font-size: 12.5px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr:hover {
+    background: var(--bg);
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  /* 버튼 */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .btn-danger {
+    border-color: rgba(239, 68, 68, 0.25);
+    background: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    font-weight: 750;
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+  }
+
+  .btn-warn {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.10);
+    color: #92400e;
+    font-weight: 750;
+  }
+
+  .btn-warn:hover {
+    background: rgba(245, 158, 11, 0.14);
+  }
+
+  /* 업로드 폼 */
+  .upload-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .upload-row input[type="file"] {
+    height: 36px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .c-meta {
+      grid-template-columns: 1fr;
+    }
+
+    .c-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .c-kv {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+  }
+
+  html,
+  body {
+    background: var(--bg) !important;
+  }
+</style>
+
+<% function fmt(n){ if (n===null || n===undefined || n==='' ) return '-' ; const num=Number(n); if (isNaN(num)) return
+  String(n); return num.toLocaleString("ko-KR"); } const createdDate=staff?.created_at ?
+  String(staff.created_at).substring(0,10) : '-' ; const startDate=staff?.start_date ?
+  String(staff.start_date).substring(0,10) : '-' ; const endDate=staff?.end_date ?
+  String(staff.end_date).substring(0,10) : '-' ; const isActive=Number(staff?.is_active)===1; const certs=staff?.certs
+  || []; %>
+
+  <div class="btn-row">
+    <a class="btn" href="/staff">목록</a>
+    <a class="btn" href="/staff/<%= staff.id %>/edit">수정</a>
+
+    <form method="post" action="/staff/<%= staff.id %>/toggle-active" style="display:inline;"
+      onsubmit="return confirm('<%= isActive ? '퇴사 처리할까요?' : '복직 처리할까요?' %>');">
+      <% if (isActive) { %>
+        <button class="btn btn-warn" type="submit">퇴사 처리</button>
+        <% } else { %>
+          <button class="btn btn-primary" type="submit">복직 처리</button>
+          <% } %>
+    </form>
+  </div>
+
+  <!-- ✅ 카드 1: 직원 기본 정보 -->
+  <div class="c-card">
+    <div class="c-title">
+      <%= staff?.name || '-' %>
+    </div>
+    <div class="c-sub">직원 기본 정보 및 계정 연결 정보</div>
+
+    <div class="c-meta">
+      <!-- 좌측: 직원 -->
+      <div>
+        <div class="c-kv">
+          <div class="c-k">직원ID</div>
+          <div class="c-v">
+            <%= staff?.id || '-' %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">직무/역할</div>
+          <div class="c-v">
+            <%= staff?.role || '-' %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">일급</div>
+          <div class="c-v">
+            <%= staff?.daily_wage ? fmt(staff.daily_wage) + ' 원' : '-' %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">재직상태</div>
+          <div class="c-v">
+            <%= isActive ? '재직' : '퇴사' %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">등록일</div>
+          <div class="c-v">
+            <%= createdDate %>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측: 기간/계정 -->
+      <div>
+        <div class="c-kv">
+          <div class="c-k">입사일</div>
+          <div class="c-v">
+            <%= startDate %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">퇴사일</div>
+          <div class="c-v">
+            <%= endDate %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">연결 계정</div>
+          <div class="c-v">
+            <% if (staff?.user_username) { %>
+              <span class="mono">
+                <%= staff.user_username %>
+              </span>
+              <span style="color:var(--muted);">(<%= staff.user_role || 'admin' %>)</span>
+              <% } else { %>
+                -
+                <% } %>
+          </div>
+        </div>
+        <div class="c-kv">
+          <div class="c-k">계정 활성</div>
+          <div class="c-v">
+            <% if (typeof staff?.user_is_active !=='undefined' && staff.user_username) { %>
+              <%= Number(staff.user_is_active)===1 ? 'Y' : 'N' %>
+                <% } else { %>
+                  -
+                  <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 카드 2: 요약(자격증/상태/일급) -->
+  <div class="c-card">
+    <div class="c-section-title">요약</div>
+
+    <div class="c-summary">
+      <div class="c-summary-grid">
+        <div class="c-sitem">
+          <div class="c-sk">자격증 파일</div>
+          <div class="c-sv">
+            <%= certs.length %> 건
+          </div>
+          <div class="c-ssub">첨부 파일 누적</div>
+        </div>
+
+        <div class="c-sitem">
+          <div class="c-sk">재직 상태</div>
+          <div class="c-sv">
+            <%= isActive ? '재직' : '퇴사' %>
+          </div>
+          <div class="c-ssub">퇴사/복직은 우측 버튼</div>
+        </div>
+
+        <div class="c-sitem">
+          <div class="c-sk">일급</div>
+          <div class="c-sv">
+            <%= staff?.daily_wage ? fmt(staff.daily_wage) : '-' %> 원
+          </div>
+          <div class="c-ssub">노무비 기준</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="c-chips">
+      <div class="c-chip">
+        <span class="c-k">직무</span>
+        <span class="c-v">
+          <%= staff?.role || '-' %>
+        </span>
+      </div>
+      <div class="c-chip">
+        <span class="c-k">입사일</span>
+        <span class="c-v">
+          <%= startDate %>
+        </span>
+      </div>
+      <div class="c-chip">
+        <span class="c-k">퇴사일</span>
+        <span class="c-v">
+          <%= endDate %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 카드 3: 자격증 파일 -->
+  <div class="c-card">
+    <div class="c-section-title">자격증 파일</div>
+    <div class="c-sub">여러 개 첨부 가능 / 업로드 후 다운로드 및 삭제</div>
+
+    <div class="upload-row">
+      <form method="post" action="/staff/<%= staff.id %>/certs" enctype="multipart/form-data"
+        style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="file" name="cert_files" multiple />
+        <button class="btn btn-primary" type="submit">업로드</button>
+      </form>
+
+      <div style="color:var(--muted); font-size:12.5px;">
+        저장 위치: <span class="mono">/uploads/staff_certs</span>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="text-center" style="width:80px;">ID</th>
+            <th>원본 파일명</th>
+            <th style="width:260px;">저장 파일명</th>
+            <th class="text-center" style="width:140px;">등록일</th>
+            <th class="text-center" style="width:110px;">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (certs && certs.length> 0) { %>
+            <% certs.forEach((f)=> { %>
+              <tr>
+                <td class="text-center">
+                  <%= f.id %>
+                </td>
+                <td>
+                  <a href="/uploads/staff_certs/<%= f.filename %>"
+                    style="color:var(--text); font-weight:650; text-decoration:none;" target="_blank" rel="noreferrer">
+                    <%= f.original_name %>
+                  </a>
+                </td>
+                <td class="mono" style="color:var(--muted);">
+                  <%= f.filename %>
+                </td>
+                <td class="text-center nowrap">
+                  <%= f.created_at ? String(f.created_at).substring(0,10) : '' %>
+                </td>
+                <td class="text-center">
+                  <form method="post" action="/staff/<%= staff.id %>/certs/<%= f.id %>/delete"
+                    onsubmit="return confirm('삭제할까요?');" style="display:inline;">
+                    <button class="btn btn-danger" type="submit" style="height:34px;">삭제</button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="5" class="text-center" style="color: var(--muted); padding: 18px;">
+                      첨부된 파일이 없습니다.
+                    </td>
+                  </tr>
+                  <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
