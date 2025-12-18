@@ -80,8 +80,12 @@ router.get("/", (req, res) => {
 
   res.render("client_list", {
     ...result,
-    active: "client",
+    // active: "client",
+    // headerTitle: "거래처 관리",
+
+    title: "거래처 관리",
     headerTitle: "거래처 관리",
+    headerSub: "거래처 등록 / 검색 / 수정 / 삭제",
   });
 });
 
