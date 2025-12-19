@@ -1,0 +1,346 @@
+<!-- views/progress_form.ejs -->
+<style>
+  :root {
+    --bg: var(--bg, #F9FAFB);
+    --panel: var(--panel, #FFFFFF);
+    --text: var(--text, #111827);
+    --muted: var(--muted, #6B7280);
+    --border: var(--border, #E5E7EB);
+    --ring: var(--ring, 0 0 0 4px rgba(17, 24, 39, .14));
+    --b-strong: rgba(17, 24, 39, 0.18);
+    --b-mid: rgba(17, 24, 39, 0.12);
+    --b-soft: rgba(17, 24, 39, 0.10);
+  }
+
+  .section {
+    border: 1px solid var(--b-strong);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .help {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #9CA3AF;
+    line-height: 1.5;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .span-2 {
+    grid-column: 1 / span 2;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--b-soft);
+  }
+
+  .grid>.field:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+
+  .label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 750;
+  }
+
+  .req {
+    color: #ef4444;
+    font-weight: 800;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    border: 1px solid var(--b-mid);
+    border-radius: 10px;
+    background: #fff;
+    padding: 0 12px;
+    height: 40px;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  .textarea {
+    height: auto;
+    padding: 10px 12px;
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .input:focus,
+  .select:focus,
+  .textarea:focus {
+    outline: none;
+    border-color: rgba(17, 24, 39, 0.75);
+    box-shadow: var(--ring);
+  }
+
+  .input[readonly] {
+    background: var(--bg);
+  }
+
+  .alert {
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+    color: #991b1b;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .summary {
+    border: 1px solid var(--b-mid);
+    border-radius: 12px;
+    background: #fff;
+    padding: 14px;
+    margin-top: 10px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .k {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 750;
+    margin-bottom: 6px;
+  }
+
+  .v {
+    font-size: 18px;
+    font-weight: 850;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .sub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #9CA3AF;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .footer-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 980px) {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .span-2 {
+      grid-column: auto;
+    }
+  }
+</style>
+
+<% if (error) { %>
+  <div class="alert">
+    <%= error %>
+  </div>
+  <% } %>
+
+    <form method="post" action="<%= mode === 'edit' ? ('/progress/' + progress.id + '/edit') : '/progress' %>">
+      <div class="section">
+        <div class="c-wrap">
+        <div class="section-title">기성 기본정보</div>
+
+        <div class="grid">
+          <div class="field span-2">
+            <div class="label">계약 선택 <span class="req">*</span></div>
+            <select class="select" name="contract_id" id="contract_id" required>
+              <option value="">-- 계약 선택 --</option>
+              <% (contracts || []).forEach((c)=> { %>
+                <option value="<%= c.id %>" data-total="<%= c.total_amount || 0 %>" <%=String(progress.contract_id || ''
+                  )===String(c.id) ? 'selected' : '' %>
+                  >
+                  <%= (c.contract_no ? '[' + c.contract_no + '] ' : '' ) %>
+                    <%= c.title %>
+                      <%= c.client_name ? ' / ' + c.client_name : '' %>
+                </option>
+                <% }) %>
+            </select>
+            <div class="help">계약을 선택하면 이전 누적값을 불러오고, 이번 입력 금액을 누적하여 누적기성률을 자동 계산합니다.</div>
+          </div>
+
+          <div class="field">
+            <div class="label">기성회차(몇차) <span class="req">*</span></div>
+            <input class="input" type="number" name="progress_round" min="1" step="1" value="<%= progress.progress_round || '' %>"
+              required />
+            <div class="help">예: 1차, 2차, 3차 …</div>
+          </div>
+
+          <div class="field">
+            <div class="label">기성월(YYYY-MM) <span class="req">*</span></div>
+            <input class="input" type="month" name="progress_month" id="progress_month"
+              value="<%= progress.progress_month || '' %>" required />
+            <div class="help">월별 중복 등록은 제한됩니다.</div>
+          </div>
+
+          <div class="field">
+            <div class="label">이번 회차 기성금액(원) <span class="req">*</span></div>
+            <input class="input" type="text" name="progress_amount" id="progress_amount"
+              value="<%= progress.progress_amount ? Number(progress.progress_amount).toLocaleString('ko-KR') : '' %>"
+              placeholder="숫자 입력 (콤마 허용)" />
+            <div class="help">이번 회차 금액을 입력하면 ‘등록 후 누적 기성률’이 자동 계산됩니다.</div>
+          </div>
+
+          <div class="field span-2" style="border-bottom:none;">
+            <div class="label">비고</div>
+            <textarea class="textarea" name="note" placeholder="특이사항, 정산 조건 등"><%= progress.note || '' %></textarea>
+          </div>
+        </div>
+
+        <!-- 누적 요약(화면에서 자동 계산/표시) -->
+        <div class="summary" id="summaryBox" data-prev-sum="<%= base ? (base.sumPaid || 0) : 0 %>"
+          data-total="<%= base ? (base.contractTotal || 0) : 0 %>">
+          <div class="summary-grid">
+            <div>
+              <div class="k">이전 누적 기성금액</div>
+              <div class="v" id="prevSumText">
+                <%= (base ? (base.sumPaid || 0) : 0).toLocaleString("ko-KR") %> 원
+              </div>
+              <div class="sub">선택 계약 기준</div>
+            </div>
+            <div>
+              <div class="k">등록 후 누적 기성금액</div>
+              <div class="v" id="newSumText">0 원</div>
+              <div class="sub">이전 누적 + 이번 회차</div>
+            </div>
+            <div>
+              <div class="k">등록 후 누적 기성률</div>
+              <div class="v" id="rateText">0 %</div>
+              <div class="sub">누적기성률 = 누적/계약금액</div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px; font-size:12.5px; color:var(--muted);">
+            계약금액: <span id="totalText">
+              <%= (base ? (base.contractTotal || 0) : 0).toLocaleString("ko-KR") %> 원
+            </span>
+            · 등록 후 잔액: <span id="balanceText">0 원</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="footer-left" style="color:var(--muted); font-size:12.5px;">
+          <%= mode==='edit' ? '수정 후 저장하면 누적 기성률이 자동으로 재계산됩니다.' : '저장 시 누적 기성률이 자동 계산되어 저장됩니다.' %>
+        </div>
+      </div>
+        <div class="footer-right">
+          <a href="/progress" class="btn">취소</a>
+          <button type="submit" class="btn btn-primary">
+            <%= mode==='edit' ? '수정 저장' : '등록 저장' %>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <script>
+      function toNumberLoose(v) {
+        const s = String(v || "").replace(/,/g, "").trim();
+        if (!s) return 0;
+        const n = Number(s);
+        return Number.isNaN(n) ? 0 : n;
+      }
+      function fmtKRW(n) {
+        try { return Number(n || 0).toLocaleString("ko-KR"); } catch (e) { return String(n || 0); }
+      }
+      function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+      const contractSel = document.getElementById("contract_id");
+      const amtInput = document.getElementById("progress_amount");
+
+      const summaryBox = document.getElementById("summaryBox");
+      const prevSumText = document.getElementById("prevSumText");
+      const newSumText = document.getElementById("newSumText");
+      const rateText = document.getElementById("rateText");
+      const totalText = document.getElementById("totalText");
+      const balanceText = document.getElementById("balanceText");
+
+      function getSelectedTotal() {
+        const opt = contractSel.options[contractSel.selectedIndex];
+        return opt ? toNumberLoose(opt.getAttribute("data-total")) : 0;
+      }
+
+      function recalc() {
+        const prevSum = toNumberLoose(summaryBox.getAttribute("data-prev-sum"));
+        const total = getSelectedTotal();
+        const thisAmt = toNumberLoose(amtInput.value);
+
+        const newSum = prevSum + thisAmt;
+        const balance = total - newSum;
+        const rate = total > 0 ? round2((newSum / total) * 100) : 0;
+
+        newSumText.textContent = fmtKRW(newSum) + " 원";
+        rateText.textContent = rate.toFixed(2) + " %";
+        balanceText.textContent = fmtKRW(balance) + " 원";
+        totalText.textContent = fmtKRW(total) + " 원";
+      }
+
+      // ✅ 계약 변경 시: 신규등록 화면은 contract_id 붙여 새로고침해서 base(이전누적)를 서버에서 다시 받음
+      contractSel.addEventListener("change", () => {
+        const id = contractSel.value;
+        if (!id) return;
+
+        // edit 모드면 페이지 이동 없이 계산만(서버 base는 참고용)
+        const isEdit = "<%= mode %>" === "edit";
+        if (isEdit) { recalc(); return; }
+
+        window.location.href = "/progress/new?contract_id=" + encodeURIComponent(id);
+      });
+
+      amtInput.addEventListener("input", recalc);
+      amtInput.addEventListener("blur", () => {
+        const n = toNumberLoose(amtInput.value);
+        if (n) amtInput.value = fmtKRW(n);
+        recalc();
+      });
+
+      // 초기 계산
+      recalc();
+    </script>

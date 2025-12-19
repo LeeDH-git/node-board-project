@@ -1,5 +1,6 @@
 <!-- views/progress_show.ejs -->
-<div class="page-head">
+
+<!-- <div class="page-head">
   <div>
     <div class="page-title">
       <%= headerTitle || '기성 상세' %>
@@ -11,109 +12,383 @@
   <div class="page-actions">
     <%- headerAction || '' %>
   </div>
-</div>
+</div> -->
 
-<div class="card">
-  <div class="c-kv-grid">
-    <div class="c-kv">
-      <div class="c-k">계약번호</div>
-      <div class="c-v">
-        <a class="link" href="/contract/<%= progress.contract_id %>">
-          <%= progress?.contract_no || '-' %>
-        </a>
+<style>
+  :root {
+    --bg: #F9FAFB;
+    --panel: #FFFFFF;
+    --text: #111827;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --ring: 0 0 0 4px rgba(17, 24, 39, .14);
+  }
+
+  /* ===== 카드(견적상세 톤) ===== */
+  .c-card {
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+  }
+
+  .c-card+.c-card {
+    margin-top: 12px;
+  }
+
+  .c-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .c-sub {
+    margin: -4px 0 12px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* ===== 상단 정보(견적상세처럼 2열 kv) ===== */
+  .c-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .c-kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+  }
+
+  .c-kv:last-child {
+    border-bottom: none;
+  }
+
+  .c-k {
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+
+  .c-v {
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 650;
+    word-break: break-word;
+  }
+
+  /* ===== 요약(견적상세처럼 한 줄 3칸) ===== */
+  .c-summary {
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+  }
+
+  .c-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .c-sitem {
+    padding: 2px 4px;
+  }
+
+  .c-sk {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 750;
+    margin-bottom: 6px;
+  }
+
+  .c-sv {
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+
+  .c-ssub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #9CA3AF;
+  }
+
+  /* ===== 섹션 타이틀 ===== */
+  .c-section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  /* ===== 칩 ===== */
+  .c-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .c-chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 999px;
+    font-size: 12.5px;
+    background: #fff;
+  }
+
+  .c-chip .c-k {
+    color: var(--muted);
+    font-weight: 650;
+  }
+
+  .c-chip .c-v {
+    color: var(--text);
+    font-weight: 750;
+  }
+
+  /* ===== 링크 ===== */
+  .c-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 750;
+  }
+
+  .c-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ===== 테이블(견적상세 톤) ===== */
+  .c-table-wrap {
+    margin-top: 10px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .c-scroll {
+    overflow-x: auto;
+  }
+
+  .c-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+
+  .c-table thead th {
+    background: var(--bg);
+    font-size: 12.5px;
+    font-weight: 750;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .c-table tbody td {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+    vertical-align: middle;
+  }
+
+  .c-table tbody tr:hover {
+    background: var(--bg);
+  }
+
+  .c-right {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .c-center {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* ===== 페이지 배경(목록과 동일) ===== */
+  html,
+  body {
+    background: #F9FAFB !important;
+  }
+
+  main,
+  .main,
+  .content,
+  .content-wrap,
+  .container {
+    background: transparent !important;
+  }
+
+  /* ===== 바깥 1겹 카드(c-wrap) 확실히 보이게 ===== */
+  .c-wrap {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(17, 24, 39, 0.18) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    overflow: visible !important;
+  }
+
+  @media (max-width: 900px) {
+    .c-meta {
+      grid-template-columns: 1fr;
+    }
+
+    .c-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .c-kv {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+  }
+</style>
+
+  <!-- ✅ 카드 1: 기성 기본 정보 (계약상세 첫 카드 톤) -->
+  <div class="c-card">
+    <div class="c-title">
+      <%= progress?.contract_title || '기성 상세' %>
+    </div>
+    <!-- <div class="c-sub">기성 정보 및 누적 기성 현황</div> -->
+
+    <div class="c-meta">
+      <div>
+        <div class="c-kv">
+          <div class="c-k">계약번호</div>
+          <div class="c-v">
+            <a class="c-link" href="/contract/<%= progress.contract_id %>">
+              <%= progress?.contract_no || "-" %>
+            </a>
+          </div>
+        </div>
+
+        <div class="c-kv">
+          <div class="c-k">발주처</div>
+          <div class="c-v">
+            <%= progress?.contract_client_name || "-" %>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="c-kv">
+          <div class="c-k">기성회차</div>
+          <div class="c-v">
+            <%= progress?.progress_round ? (progress.progress_round + "차" ) : "-" %>
+          </div>
+        </div>
+
+        <div class="c-kv">
+          <div class="c-k">기성월</div>
+          <div class="c-v">
+            <%= progress?.progress_month ? (progress?.progress_round ? (progress.progress_round + "차 · " ) : "" ) +
+              progress.progress_month : "-" %>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="c-kv">
-      <div class="c-k">계약명</div>
-      <div class="c-v">
-        <%= progress?.contract_title || '-' %>
+    <div class="c-chips">
+      <div class="c-chip">
+        <span class="c-k">이번 회차 기성금액</span>
+        <span class="c-v">
+          <%= (progress?.progress_amount || 0).toLocaleString("ko-KR") %> 원
+        </span>
       </div>
-    </div>
-
-    <div class="c-kv">
-      <div class="c-k">발주처</div>
-      <div class="c-v">
-        <%= progress?.contract_client_name || '-' %>
+      <div class="c-chip">
+        <span class="c-k">누적기성률</span>
+        <span class="c-v">
+          <%= (progress?.progress_rate ?? 0).toFixed ? Number(progress.progress_rate).toFixed(2) :
+            (progress?.progress_rate || 0) %> %
+        </span>
       </div>
-    </div>
-
-    <!-- ✅ 기성회차 -->
-    <div class="c-kv">
-      <div class="c-k">기성회차</div>
-      <div class="c-v">
-        <%= progress?.progress_round ? (progress.progress_round + '차' ) : '-' %>
-      </div>
-    </div>
-
-    <div class="c-kv">
-      <div class="c-k">기성월</div>
-      <div class="c-v">
-        <%= progress?.progress_month || '-' %>
-      </div>
-    </div>
-
-    <div class="c-kv">
-      <div class="c-k">기성금액</div>
-      <div class="c-v">
-        <%= (progress?.progress_amount || 0).toLocaleString('ko-KR') %> 원
-      </div>
-    </div>
-
-    <div class="c-kv">
-      <div class="c-k">누적기성률</div>
-      <div class="c-v">
-        <%= (progress?.progress_rate ?? 0).toFixed ? Number(progress.progress_rate).toFixed(2) :
-          (progress?.progress_rate || 0) %> %
-      </div>
-    </div>
-
-    <div class="c-kv span-2">
-      <div class="c-k">비고</div>
-      <div class="c-v">
-        <%= progress?.note || '-' %>
+      <div class="c-chip">
+        <span class="c-k">등록일</span>
+        <span class="c-v">
+          <%= progress?.created_at ? String(progress.created_at).substring(0,10) : "-" %>
+        </span>
       </div>
     </div>
   </div>
 
-  <div class="divider" style="margin:14px 0;"></div>
+  <!-- ✅ 카드 2: 요약(계약상세 요약 톤) -->
+  <div class="c-card">
+    <div class="c-section-title">요약</div>
 
-  <div class="summary-box">
-    <div class="summary-row">
-      <div class="muted">계약금액</div>
-      <div>
-        <%= (summary?.contractTotal || 0).toLocaleString('ko-KR') %> 원
+    <div class="c-summary">
+      <div class="c-summary-grid">
+        <div class="c-sitem">
+          <div class="c-sk">계약금액</div>
+          <div class="c-sv">
+            <%= (summary?.contractTotal || 0).toLocaleString("ko-KR") %> 원
+          </div>
+        </div>
+
+        <div class="c-sitem">
+          <div class="c-sk">전체 누적 기성금액</div>
+          <div class="c-sv">
+            <%= (summary?.sumPaid || 0).toLocaleString("ko-KR") %> 원
+          </div>
+          <div class="c-ssub">계약 기준 누적 합계</div>
+        </div>
+
+        <div class="c-sitem">
+          <div class="c-sk">전체 잔액(계약금액 - 누적)</div>
+          <div class="c-sv">
+            <%= (summary?.balance || 0).toLocaleString("ko-KR") %> 원
+          </div>
+          <div class="c-ssub">정산/청구 계획 확인</div>
+        </div>
       </div>
     </div>
-    <div class="summary-row">
-      <div class="muted">전체 누적 기성금액</div>
-      <div>
-        <%= (summary?.sumPaid || 0).toLocaleString('ko-KR') %> 원
+
+    <div class="c-chips">
+      <div class="c-chip">
+        <span class="c-k">이 기성까지 누적</span>
+        <span class="c-v">
+          <%= (summary?.cumAtThis || 0).toLocaleString("ko-KR") %> 원
+        </span>
       </div>
-    </div>
-    <div class="summary-row">
-      <div class="muted">전체 잔액</div>
-      <div>
-        <%= (summary?.balance || 0).toLocaleString('ko-KR') %> 원
+      <div class="c-chip">
+        <span class="c-k">이 기성까지 잔액</span>
+        <span class="c-v">
+          <%= (summary?.balanceAtThis || 0).toLocaleString("ko-KR") %> 원
+        </span>
       </div>
-    </div>
-    <div class="summary-row">
-      <div class="muted">이 기성까지 누적</div>
-      <div>
-        <%= (summary?.cumAtThis || 0).toLocaleString('ko-KR') %> 원
-      </div>
-    </div>
-    <div class="summary-row">
-      <div class="muted">이 기성까지 잔액</div>
-      <div>
-        <%= (summary?.balanceAtThis || 0).toLocaleString('ko-KR') %> 원
-      </div>
-    </div>
-    <div class="summary-row">
-      <div class="muted">이 기성까지 누적률</div>
-      <div>
-        <%= (summary?.cumulativeRateAtThis ?? 0).toFixed(2) %> %
+      <div class="c-chip">
+        <span class="c-k">이 기성까지 누적률</span>
+        <span class="c-v">
+          <%= (summary?.cumulativeRateAtThis ?? 0).toFixed(2) %> %
+        </span>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- ✅ 카드 3: 비고(있을 때만) -->
+  <div class="c-card">
+    <div class="c-section-title">비고</div>
+    <div style="color: var(--text); font-size: 13.5px; line-height: 1.7;">
+      <%= progress?.note || "-" %>
+    </div>
+  </div>
