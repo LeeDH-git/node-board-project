@@ -194,7 +194,7 @@
 <div class="toolbar">
   <div class="toolbar-left">
     <form method="get" action="/progress" class="search-form">
-      <input type="text" name="q" placeholder="계약명/계약번호/기성번호로 검색"
+      <input type="text" name="q" placeholder="계약명/계약번호로 검색"
         value="<%= (typeof searchQuery !== 'undefined' ? searchQuery : '') %>" />
       <button class="btn" type="submit">검색</button>
       <button class="btn" type="button" onclick="window.location.href='/progress'">새로고침</button>
@@ -211,7 +211,7 @@
     <thead>
       <tr>
         <th class="text-center" style="width:70px;">No</th>
-        <th style="width:140px;">기성번호</th>
+        <!-- ✅ 기성번호 컬럼 제거 -->
         <th style="width:140px;">계약번호</th>
         <th>계약명</th>
         <th style="width:160px;" class="text-center">발주처</th>
@@ -230,11 +230,12 @@
             <td class="text-center">
               <%= p.row_no %>
             </td>
+
+            <!-- ✅ 계약번호 클릭 -> 계약 상세로 이동 -->
             <td class="nowrap">
-              <%= p.progress_no || '' %>
-            </td>
-            <td class="nowrap">
-              <%= p.contract_no || '' %>
+              <a class="link" href="/contract/<%= p.contract_id %>">
+                <%= p.contract_no || '' %>
+              </a>
             </td>
 
             <td>
@@ -247,8 +248,10 @@
               <%= p.contract_client_name || '' %>
             </td>
 
+            <!-- ✅ n차 · YYYY-MM -->
             <td class="text-center nowrap">
-              <%= p.progress_month || '' %>
+              <%= p.progress_round ? (p.progress_round + '차 · ' ) : '' %>
+                <%= p.progress_month || '' %>
             </td>
 
             <td class="text-center nowrap">
@@ -279,7 +282,8 @@
           <% }) %>
             <% } else { %>
               <tr>
-                <td colspan="10" class="text-center" style="color: var(--muted); padding: 18px;">
+                <!-- ✅ 컬럼 1개 줄어서 colspan 9 -->
+                <td colspan="9" class="text-center" style="color: var(--muted); padding: 18px;">
                   등록된 기성이 없습니다.
                 </td>
               </tr>

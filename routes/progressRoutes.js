@@ -57,6 +57,7 @@ router.get("/new", (req, res) => {
     mode: "create",
     progress: {
       contract_id: selectedContractId,
+      progress_round: "", // ✅ 추가
       progress_month: "",
       progress_amount: "",
       note: "",
@@ -125,7 +126,6 @@ router.get("/:id/edit", (req, res) => {
     ? contractRepo.findAllForSelect()
     : [];
 
-  // 수정폼에서도 base를 보여주고 싶으면(현재 누적 기준)
   const base = detail.progress.contract_id
     ? progressService.getContractProgressBase(detail.progress.contract_id)
     : null;

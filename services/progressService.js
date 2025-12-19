@@ -97,15 +97,17 @@ function getContractProgressBase(contractId) {
 
 function createProgressFromRequest(body) {
   const contract_id = toIntOrZero(body.contract_id);
+  const progress_round = toIntOrZero(body.progress_round);
   const progress_month = mustMonth(body.progress_month);
   const note = (body.note || "").trim();
 
   if (!contract_id) throw new Error("계약을 선택해야 합니다.");
+  if (!progress_round) throw new Error("기성회차(몇차)를 입력해야 합니다.");
 
   const contract = contractRepo.findById(contract_id);
   if (!contract) throw new Error("존재하지 않는 계약입니다.");
 
-  // 월 중복 체크
+  // 월 중복 체크(기존 정책 유지)
   if (progressRepo.existsByContractMonth(contract_id, progress_month)) {
     throw new Error(
       "해당 계약의 해당 기성월(YYYY-MM)은 이미 등록되어 있습니다."
@@ -114,8 +116,6 @@ function createProgressFromRequest(body) {
 
   const contractTotal = toIntOrZero(contract.total_amount);
 
-  // ✅ 이제 “누적률 자동”이므로, 사용자 입력은 금액 위주로 받는다.
-  // (금액이 0이면 의미가 없으니 에러 처리)
   const progress_amount = toIntOrZero(body.progress_amount);
   if (!progress_amount) throw new Error("기성금액(원)을 입력해야 합니다.");
 
@@ -125,15 +125,14 @@ function createProgressFromRequest(body) {
   const id = progressRepo.createProgressTx({
     progress_no,
     contract_id,
+    progress_round,
     progress_month,
-    progress_rate: null, // 재계산으로 채움
+    progress_rate: null,
     progress_amount,
     note,
   });
 
-  // ✅ 저장 후 전체 누적률 재계산(순서 보장)
   recalcContractCumulativeRates(contract_id, contractTotal);
-
   return id;
 }
 
@@ -141,15 +140,17 @@ function updateProgressFromRequest(id, body) {
   const progressId = toIntOrZero(id);
 
   const contract_id = toIntOrZero(body.contract_id);
+  const progress_round = toIntOrZero(body.progress_round);
   const progress_month = mustMonth(body.progress_month);
   const note = (body.note || "").trim();
 
   if (!contract_id) throw new Error("계약을 선택해야 합니다.");
+  if (!progress_round) throw new Error("기성회차(몇차)를 입력해야 합니다.");
 
   const contract = contractRepo.findById(contract_id);
   if (!contract) throw new Error("존재하지 않는 계약입니다.");
 
-  // 자기 자신 제외 월 중복 체크
+  // 자기 자신 제외 월 중복 체크(기존 정책 유지)
   if (
     progressRepo.existsByContractMonthExceptId(
       contract_id,
@@ -169,13 +170,13 @@ function updateProgressFromRequest(id, body) {
 
   progressRepo.updateProgressTx(progressId, {
     contract_id,
+    progress_round,
     progress_month,
-    progress_rate: null, // 재계산으로 채움
+    progress_rate: null,
     progress_amount,
     note,
   });
 
-  // ✅ 수정 후에도 전체 누적률 재계산
   recalcContractCumulativeRates(contract_id, contractTotal);
 }
 
@@ -189,7 +190,7 @@ function getProgressDetail(id) {
   const sumPaid = progressRepo.sumByContractId(row.contract_id);
   const balance = contractTotal - sumPaid;
 
-  // “이 레코드까지의 누적/잔액”도 표시하고 싶으면 계산
+  // “이 레코드까지의 누적/잔액”
   const asc = progressRepo.findByContractIdAsc(row.contract_id);
   let cumAtThis = 0;
   for (const r of asc) {
@@ -220,8 +221,6 @@ function deleteProgress(id) {
   const contractTotal = toIntOrZero(row.contract_total_amount);
 
   progressRepo.deleteProgressTx(id);
-
-  // ✅ 삭제 후에도 전체 누적률 재계산
   recalcContractCumulativeRates(contractId, contractTotal);
 }
 

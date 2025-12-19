@@ -206,6 +206,13 @@
           </div>
 
           <div class="field">
+            <div class="label">기성회차(몇차) <span class="req">*</span></div>
+            <input class="input" type="number" name="progress_round" min="1" step="1" value="<%= progress.progress_round || '' %>"
+              required />
+            <div class="help">예: 1차, 2차, 3차 …</div>
+          </div>
+
+          <div class="field">
             <div class="label">기성월(YYYY-MM) <span class="req">*</span></div>
             <input class="input" type="month" name="progress_month" id="progress_month"
               value="<%= progress.progress_month || '' %>" required />

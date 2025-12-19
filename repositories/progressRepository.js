@@ -3,13 +3,26 @@ const db = require("../db");
 
 // ===== Prepared Statements =====
 const insertProgressStmt = db.prepare(`
-  INSERT INTO progress (progress_no, contract_id, progress_month, progress_rate, progress_amount, note)
-  VALUES (?, ?, ?, ?, ?, ?)
+  INSERT INTO progress (
+    progress_no,
+    contract_id,
+    progress_round,
+    progress_month,
+    progress_rate,
+    progress_amount,
+    note
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `);
 
 const updateProgressStmt = db.prepare(`
   UPDATE progress
-  SET contract_id = ?, progress_month = ?, progress_rate = ?, progress_amount = ?, note = ?
+  SET contract_id = ?,
+      progress_round = ?,
+      progress_month = ?,
+      progress_rate = ?,
+      progress_amount = ?,
+      note = ?
   WHERE id = ?
 `);
 
@@ -42,7 +55,7 @@ const listProgressStmt = db.prepare(`
          c.total_amount AS contract_total_amount
   FROM progress p
   JOIN contracts c ON c.id = p.contract_id
-  WHERE (c.title LIKE ? OR c.contract_no LIKE ? OR p.progress_no LIKE ?)
+  WHERE (c.title LIKE ? OR c.contract_no LIKE ?)
   ORDER BY p.id DESC
   LIMIT ?
   OFFSET ?
@@ -52,7 +65,7 @@ const countProgressStmt = db.prepare(`
   SELECT COUNT(*) AS cnt
   FROM progress p
   JOIN contracts c ON c.id = p.contract_id
-  WHERE (c.title LIKE ? OR c.contract_no LIKE ? OR p.progress_no LIKE ?)
+  WHERE (c.title LIKE ? OR c.contract_no LIKE ?)
 `);
 
 const sumByContractStmt = db.prepare(`
@@ -112,17 +125,11 @@ function findById(id) {
 }
 
 function countByKeyword(keywordLike) {
-  return countProgressStmt.get(keywordLike, keywordLike, keywordLike).cnt;
+  return countProgressStmt.get(keywordLike, keywordLike).cnt;
 }
 
 function findPaged(keywordLike, limit, offset) {
-  return listProgressStmt.all(
-    keywordLike,
-    keywordLike,
-    keywordLike,
-    limit,
-    offset
-  );
+  return listProgressStmt.all(keywordLike, keywordLike, limit, offset);
 }
 
 function sumByContractId(contractId) {
@@ -160,6 +167,7 @@ const createProgressTx = db.transaction((data) => {
   const info = insertProgressStmt.run(
     progressNo,
     data.contract_id,
+    data.progress_round ?? null,
     data.progress_month,
     data.progress_rate ?? null,
     data.progress_amount ?? 0,
@@ -172,6 +180,7 @@ const createProgressTx = db.transaction((data) => {
 const updateProgressTx = db.transaction((id, data) => {
   updateProgressStmt.run(
     data.contract_id,
+    data.progress_round ?? null,
     data.progress_month,
     data.progress_rate ?? null,
     data.progress_amount ?? 0,
