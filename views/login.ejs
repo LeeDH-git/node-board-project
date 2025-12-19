@@ -1,6 +1,14 @@
+<style>
+    .caps-warning {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #d32f2f;
+}
+</style>
+
 <div class="auth-wrap">
 
-    <!-- ✅ 로그인 대문 -->
+    <!-- 로그인 대문 -->
     <div class="login-hero">
         <h1>현장관리 시스템</h1>
         <p>로그인 후 홈 화면으로 이동합니다.</p>
@@ -20,11 +28,33 @@
                     <input name="username" class="auth-input" autocomplete="username" required />
 
                     <label class="auth-label">비밀번호</label>
-                    <input name="password" type="password" class="auth-input" autocomplete="current-password"
-                        required />
+                    <input id="password" name="password" type="password" class="auth-input"
+                        autocomplete="current-password" required />
+
+                    <!-- Caps Lock 경고 문구 -->
+                    <div id="capsWarning" class="caps-warning" style="display:none;">
+                        Caps Lock이 켜져 있습니다.
+                    </div>
 
                     <button type="submit" class="auth-btn">로그인</button>
-                </form>              
+                </form>
     </div>
 
 </div>
+
+<script>
+    const passwordInput = document.getElementById("password");
+    const capsWarning = document.getElementById("capsWarning");
+
+    passwordInput.addEventListener("keyup", function (e) {
+        if (e.getModifierState && e.getModifierState("CapsLock")) {
+            capsWarning.style.display = "block";
+        } else {
+            capsWarning.style.display = "none";
+        }
+    });
+
+    passwordInput.addEventListener("blur", function () {
+        capsWarning.style.display = "none";
+    });
+</script>
