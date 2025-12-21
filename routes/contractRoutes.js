@@ -3,6 +3,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
+const { normalizeOriginalName } = require("../middlewares/utils/fileName"); // ✅ [추가] 파일명 정규화
 
 const contractService = require("../services/contractService");
 
@@ -21,8 +22,10 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext);
+    // ✅ [수정] 한글 파일명 깨짐 방지: originalname 정규화 후 ext/base 추출
+    const original = normalizeOriginalName(file.originalname);
+    const ext = path.extname(original);
+    const base = path.basename(original, ext);
     cb(null, `${base}-${Date.now()}${ext}`);
   },
 });
@@ -30,7 +33,8 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype !== "application/pdf") return cb(new Error("PDF만 업로드 가능합니다."));
+    if (file.mimetype !== "application/pdf")
+      return cb(new Error("PDF만 업로드 가능합니다."));
     cb(null, true);
   },
 });
@@ -38,7 +42,11 @@ const upload = multer({
 // 목록
 router.get("/", (req, res) => {
   const perPage = 10;
-  const data = contractService.listContracts(req.query.q, req.query.page, perPage);
+  const data = contractService.listContracts(
+    req.query.q,
+    req.query.page,
+    perPage
+  );
 
   res.render("contract_list", {
     ...data,

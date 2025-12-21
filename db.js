@@ -185,6 +185,8 @@ db.exec(`
     email         TEXT,
     address       TEXT,
     memo          TEXT,
+    biz_cert_name TEXT,
+    biz_cert_path TEXT,
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   );
 

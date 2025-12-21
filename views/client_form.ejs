@@ -1,129 +1,132 @@
-<!-- <%
-  const isEdit = mode === "edit";
-  const actionUrl = isEdit ? `/client/${client.id}/edit` : "/client";
-%> -->
+<link rel="stylesheet" href="/css/style.css">
 
-<style>
-  .form-wrap{
-    max-width: 820px;
-  }
-
-  .form-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .form-head h2{
-    margin:0;
-    font-size: 18px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-  }
-  .form-head .sub{
-    margin: 2px 0 0;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-
-  .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    line-height: 1;
-  }
-
-  .form-grid{
-    display:grid;
-    gap:12px;
-  }
-
-  .field{
-    display:grid;
-    gap:6px;
-  }
-  .field label{
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  input[type="text"], input[type="email"], textarea{
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    background: #fff;
-    font-family: inherit;
-    font-size: 14px;
-  }
-  textarea{ resize: vertical; }
-
-  input:focus, textarea:focus{
-    outline:none;
-    border-color: var(--text);
-    box-shadow: var(--ring);
-  }
-
-  .actions{
-    margin-top: 14px;
-    display:flex;
-    gap:8px;
-    justify-content:flex-end;
-    flex-wrap: wrap;
-  }
-</style>
-
-<div class="form-wrap">
-  <div class="form-head">
-    <div>
-      <h2><%= pageTitle %></h2>
-      <div class="sub">거래처 기본정보를 입력하세요.</div>
+<main id="client-show" class="client-form">
+  <div class="page-head">
+    <div class="page-title-wrap">
+      <div class="page-title">
+        <%= pageTitle || (mode==='edit' ? '거래처 수정' : '거래처 등록' ) %>
+      </div>
+      <div class="sub">
+        거래처 기본정보를 입력하세요.
+      </div>
     </div>
 
-    <div class="actions">
+    <div class="head-actions">
       <a href="/client" class="btn">목록</a>
+
       <button type="submit" form="client-form" class="btn btn-primary">
-        <%= isEdit ? "수정 저장" : "저장" %>
+        <%= mode==='edit' ? '수정 저장' : '저장' %>
       </button>
     </div>
   </div>
 
-  <form id="client-form" method="POST" action="<%= actionUrl %>" class="form-grid">
-    <div class="field">
-      <label>거래처명 (필수)</label>
-      <input name="name" required value="<%= client.name || '' %>" />
+  <form id="client-form" method="POST" action="<%= mode === 'edit' ? ('/client/' + client.id + '/edit') : '/client' %>"
+    enctype="multipart/form-data">
+    <!-- ✅ 카드 1: 기본정보 (UI는 상세보기와 동일한 card/meta-grid/kv) -->
+    <div class="card">
+      <div class="title" style="font-weight:800;">
+        <%= (mode==='edit' ? (client.name || '-' ) : '거래처 정보' ) %>
+      </div>
+
+      <div class="meta-grid">
+        <div>
+          <div class="kv">
+            <div class="k">거래처명 <span class="req">*</span></div>
+            <div class="v">
+              <input class="kv-input" name="name" required value="<%= client.name || '' %>" />
+            </div>
+          </div>
+
+          <div class="kv">
+            <div class="k">사업자번호</div>
+            <div class="v">
+              <input class="kv-input" name="biz_no" value="<%= client.biz_no || '' %>" />
+            </div>
+          </div>
+
+          <div class="kv">
+            <div class="k">대표자</div>
+            <div class="v">
+              <input class="kv-input" name="ceo_name" value="<%= client.ceo_name || '' %>" />
+            </div>
+          </div>
+
+          <div class="kv">
+            <div class="k">전화</div>
+            <div class="v">
+              <input class="kv-input" name="phone" value="<%= client.phone || '' %>" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="kv">
+            <div class="k">이메일</div>
+            <div class="v">
+              <input class="kv-input" type="email" name="email" value="<%= client.email || '' %>" />
+            </div>
+          </div>
+
+          <div class="kv">
+            <div class="k">주소</div>
+            <div class="v">
+              <input class="kv-input" name="address" value="<%= client.address || '' %>" />
+            </div>
+          </div>
+
+          <div class="kv">
+            <div class="k">등록일</div>
+            <div class="v">
+              <%= client.created_at ? String(client.created_at).substring(0,19) : "-" %>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="field">
-      <label>사업자번호</label>
-      <input name="biz_no" value="<%= client.biz_no || '' %>" />
+    <!-- ✅ 카드 2: 메모 -->
+    <div class="card">
+      <div class="title" style="font-size:13px; margin-bottom:8px;">메모</div>
+
+      <div class="meta-grid">
+        <div style="grid-column: 1 / -1;">
+          <div class="kv memo">
+            <div class="k">내용</div>
+            <div class="v">
+              <textarea class="kv-textarea" name="memo" rows="6"><%= client.memo || '' %></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="field">
-      <label>대표자</label>
-      <input name="ceo_name" value="<%= client.ceo_name || '' %>" />
+    <!-- ✅ 카드 3: 사업자등록증 (첨부/표시) -->
+    <div class="card">
+      <div class="title" style="font-size:13px; margin-bottom:8px;">사업자등록증</div>
+
+      <div class="meta-grid">
+        <div style="grid-column: 1 / -1;">
+          <div class="kv">
+            <div class="k">파일</div>
+            <div class="v">
+              <% if (client.biz_cert_path) { %>
+                <div class="file-row">
+                  <a class="link" href="<%= client.biz_cert_path %>" target="_blank" rel="noreferrer">
+                    <%= client.biz_cert_name || '첨부파일 보기' %>
+                  </a>
+                  <span class="muted" style="margin-left:8px;">(새 파일을 선택하면 교체됩니다)</span>
+                </div>
+                <% } else { %>
+                  <div class="muted">첨부된 파일이 없습니다.</div>
+                  <% } %>
+
+                    <input class="kv-file" type="file" name="biz_cert" accept=".pdf,.png,.jpg,.jpeg" />
+                    <div class="help">PDF/이미지(PNG/JPG)만 권장, 10MB 이하</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="field">
-      <label>전화</label>
-      <input name="phone" value="<%= client.phone || '' %>" />
-    </div>
-
-    <div class="field">
-      <label>이메일</label>
-      <input type="email" name="email" value="<%= client.email || '' %>" />
-    </div>
-
-    <div class="field">
-      <label>주소</label>
-      <input name="address" value="<%= client.address || '' %>" />
-    </div>
-
-    <div class="field">
-      <label>메모</label>
-      <textarea name="memo" rows="5"><%= client.memo || '' %></textarea>
-    </div>
   </form>
-</div>
+</main>

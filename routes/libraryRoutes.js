@@ -2,6 +2,7 @@
 const express = require("express");
 const path = require("path");
 const multer = require("multer");
+const { normalizeOriginalName } = require("../middlewares/utils/fileName"); // ✅ [추가] 파일명 정규화
 const libraryService = require("../services/libraryService");
 
 const router = express.Router();
@@ -9,10 +10,13 @@ const PER_PAGE = 15;
 
 // 업로드 저장 경로
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "..", "uploads", "library")),
+  destination: (req, file, cb) =>
+    cb(null, path.join(__dirname, "..", "uploads", "library")),
   filename: (req, file, cb) => {
     const time = Date.now();
-    const ext = path.extname(file.originalname);
+    // ✅ [수정] 한글 파일명 깨짐 방지: originalname 정규화 후 ext 추출
+    const original = normalizeOriginalName(file.originalname);
+    const ext = path.extname(original);
     cb(null, `${time}${ext}`);
   },
 });

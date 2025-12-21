@@ -962,3 +962,877 @@ input[readonly] {
         grid-column: auto;
     }
 }
+
+/* =========================================
+   8. estimate_show.ejs 전용(견적 상세보기 톤 재현)
+   - 공통 테이블(.table-wrap) 덮어쓰지 않고 스코프에서만 override
+   ========================================= */
+
+/* 카드/타이틀/메타 */
+#estimate-show .card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+}
+
+#estimate-show .card+.card {
+    margin-top: 12px;
+}
+
+#estimate-show .title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+#estimate-show .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+#estimate-show .kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+#estimate-show .kv:last-child {
+    border-bottom: none;
+}
+
+#estimate-show .k {
+    color: var(--muted);
+    font-size: 12.5px;
+}
+
+#estimate-show .v {
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 550;
+    word-break: break-word;
+}
+
+/* 테이블: 견적상세보기 톤 */
+#estimate-show .table-wrap {
+    border: 2px solid rgba(17, 24, 39, 0.18);
+    border-radius: 12px;
+    background: #fff;
+    margin-top: 10px;
+    overflow-x: hidden;
+    /* 기본 스크롤 숨김 */
+}
+
+/* 공통(.table-wrap table min-width:900px 등) 무력화 + fixed layout */
+#estimate-show .table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 12.5px;
+    border: 2px solid rgba(17, 24, 39, 0.18);
+    min-width: 0;
+    /* 공통 min-width 제거 */
+}
+
+#estimate-show .table-wrap thead th {
+    background: var(--bg);
+    font-weight: 650;
+    padding: 10px 8px;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 2px solid rgba(17, 24, 39, 0.12);
+}
+
+#estimate-show .table-wrap tbody td,
+#estimate-show .table-wrap tfoot td {
+    padding: 8px 8px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 2px solid rgba(17, 24, 39, 0.08);
+    font-variant-numeric: tabular-nums;
+}
+
+#estimate-show .table-wrap tbody tr:hover {
+    background: var(--bg);
+}
+
+/* 세로선 */
+#estimate-show .table-wrap table th,
+#estimate-show .table-wrap table td {
+    border-right: 2px solid rgba(17, 24, 39, 0.10);
+}
+
+#estimate-show .table-wrap table th:last-child,
+#estimate-show .table-wrap table td:last-child {
+    border-right: none;
+}
+
+/* 최외곽 테두리 확실히 */
+#estimate-show .table-wrap table thead tr:first-child th {
+    border-top: 2px solid rgba(17, 24, 39, 0.18);
+}
+
+#estimate-show .table-wrap table tbody tr:last-child td,
+#estimate-show .table-wrap table tfoot tr:last-child td {
+    border-bottom: 2px solid rgba(17, 24, 39, 0.18);
+}
+
+/* 정렬 유틸(상세보기에서만 padding-right/nowrap 보강) */
+#estimate-show .text-left {
+    text-align: left;
+}
+
+#estimate-show .text-right {
+    text-align: right;
+    padding-right: 14px;
+    white-space: nowrap;
+}
+
+/* 컬럼폭 */
+#estimate-show th.col-name,
+#estimate-show td.col-name {
+    width: 16%;
+}
+
+#estimate-show th.col-spec,
+#estimate-show td.col-spec {
+    width: 12%;
+}
+
+#estimate-show th.col-unit,
+#estimate-show td.col-unit {
+    width: 4%;
+}
+
+#estimate-show th.col-qty,
+#estimate-show td.col-qty {
+    width: 5%;
+}
+
+#estimate-show th.col-mu,
+#estimate-show td.col-mu,
+#estimate-show th.col-lu,
+#estimate-show td.col-lu,
+#estimate-show th.col-eu,
+#estimate-show td.col-eu,
+#estimate-show th.col-tu,
+#estimate-show td.col-tu {
+    width: 5.5%;
+}
+
+#estimate-show th.col-ma,
+#estimate-show td.col-ma,
+#estimate-show th.col-la,
+#estimate-show td.col-la,
+#estimate-show th.col-ea,
+#estimate-show td.col-ea,
+#estimate-show th.col-ta,
+#estimate-show td.col-ta {
+    width: 6.5%;
+}
+
+#estimate-show tbody td.col-mu,
+#estimate-show tbody td.col-lu,
+#estimate-show tbody td.col-eu,
+#estimate-show tbody td.col-tu {
+    text-align: right;
+    padding-right: 14px;
+    white-space: nowrap;
+}
+
+#estimate-show tbody td.col-ma,
+#estimate-show tbody td.col-la,
+#estimate-show tbody td.col-ea,
+#estimate-show tbody td.col-ta {
+    text-align: right;
+    padding-right: 14px;
+    white-space: nowrap;
+}
+
+#estimate-show th.col-note,
+#estimate-show td.col-note {
+    width: 9%;
+}
+
+#estimate-show tr.total-row td {
+    font-weight: 700;
+    background: var(--bg);
+}
+
+#estimate-show tfoot td {
+    border-top: 2px solid rgba(17, 24, 39, 0.14);
+}
+
+/* 좌측 정렬 */
+#estimate-show tbody td.col-name {
+    text-align: left;
+}
+
+/* 화면 좁아질 때만 스크롤 허용 */
+@media (max-width: 1500px) {
+    #estimate-show .table-wrap {
+        overflow-x: auto;
+    }
+
+    #estimate-show .table-wrap table {
+        min-width: 1400px;
+    }
+}
+
+@media (max-width: 900px) {
+    #estimate-show .meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================
+   9. contract_show.ejs 전용(계약상세 톤)
+   - 다른 화면 영향 최소화를 위해 #contract-show 스코프에만 적용
+   ========================================= */
+
+#contract-show {
+    /* 계약상세에서만 배경 강제(요청하신 코드 반영) */
+    background: transparent !important;
+}
+
+/* 페이지 배경(목록과 동일) */
+#contract-show html,
+#contract-show body {
+    background: #F9FAFB !important;
+}
+
+/* 레이아웃 래퍼가 흰색을 덮으면 투명 처리 (상세페이지 영역에만) */
+#contract-show main,
+#contract-show .main,
+#contract-show .content,
+#contract-show .content-wrap,
+#contract-show .container {
+    background: transparent !important;
+}
+
+/* 바깥 1겹 카드(c-wrap) */
+#contract-show .c-wrap {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+
+    background: #FFFFFF !important;
+    border: 1px solid rgba(17, 24, 39, 0.18) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+
+    overflow: visible !important;
+}
+
+/* ===== 카드(견적상세 톤) ===== */
+#contract-show .c-card {
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+}
+
+#contract-show .c-card+.c-card {
+    margin-top: 12px;
+}
+
+#contract-show .c-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+#contract-show .c-sub {
+    margin: -4px 0 12px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* ===== 상단 정보(2열 kv) ===== */
+#contract-show .c-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+#contract-show .c-kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+}
+
+#contract-show .c-kv:last-child {
+    border-bottom: none;
+}
+
+#contract-show .c-k {
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 650;
+}
+
+#contract-show .c-v {
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 650;
+    word-break: break-word;
+}
+
+/* ===== 요약(한 줄 3칸) ===== */
+#contract-show .c-summary {
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+}
+
+#contract-show .c-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+}
+
+#contract-show .c-sitem {
+    padding: 2px 4px;
+}
+
+#contract-show .c-sk {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 750;
+    margin-bottom: 6px;
+}
+
+#contract-show .c-sv {
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 850;
+    letter-spacing: -0.02em;
+}
+
+#contract-show .c-ssub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: #9CA3AF;
+}
+
+/* ===== 섹션 타이틀 ===== */
+#contract-show .c-section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+/* ===== 칩 ===== */
+#contract-show .c-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+#contract-show .c-chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 999px;
+    font-size: 12.5px;
+    background: #fff;
+}
+
+#contract-show .c-chip .c-k {
+    color: var(--muted);
+    font-weight: 650;
+}
+
+#contract-show .c-chip .c-v {
+    color: var(--text);
+    font-weight: 750;
+}
+
+/* ===== 테이블(견적상세 톤) ===== */
+#contract-show .c-table-wrap {
+    margin-top: 10px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+
+#contract-show .c-scroll {
+    overflow-x: auto;
+}
+
+#contract-show .c-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+}
+
+#contract-show .c-table thead th {
+    background: var(--bg);
+    font-size: 12.5px;
+    font-weight: 750;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+    text-align: left;
+    white-space: nowrap;
+}
+
+#contract-show .c-table tbody td {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+    vertical-align: middle;
+}
+
+#contract-show .c-table tbody tr:hover {
+    background: var(--bg);
+}
+
+#contract-show .c-right {
+    text-align: right;
+    white-space: nowrap;
+}
+
+#contract-show .c-center {
+    text-align: center;
+    white-space: nowrap;
+}
+
+#contract-show .c-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 750;
+}
+
+#contract-show .c-link:hover {
+    text-decoration: underline;
+}
+
+/* ===== PDF/수기 ===== */
+#contract-show .c-pdfbox {
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg);
+}
+
+#contract-show .c-embed {
+    width: 100%;
+    height: 600px;
+    display: block;
+    border: 0;
+}
+
+#contract-show .c-pre {
+    white-space: pre-wrap;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--bg);
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* 반응형 */
+@media (max-width: 900px) {
+    #contract-show .c-meta {
+        grid-template-columns: 1fr;
+    }
+
+    #contract-show .c-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #contract-show .c-embed {
+        height: 480px;
+    }
+}
+
+@media (max-width: 520px) {
+    #contract-show .c-kv {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    #contract-show .c-embed {
+        height: 360px;
+    }
+}
+
+/* =========================================
+   10. contract_form.ejs 전용(계약 작성/수정 톤)
+   - 다른 화면 영향 최소화를 위해 #contract-form 스코프에만 적용
+   ========================================= */
+
+#contract-form {
+    /* 페이지 배경은 공통과 동일, 혹시 상위가 덮으면 투명 */
+    background: transparent;
+}
+
+/* 변수 보강(공통 :root가 이미 있더라도 안전) */
+#contract-form {
+    --bg: var(--bg, #F9FAFB);
+    --panel: var(--panel, #FFFFFF);
+    --text: var(--text, #111827);
+    --muted: var(--muted, #6B7280);
+    --border: var(--border, #E5E7EB);
+    --ring: var(--ring, 0 0 0 4px rgba(17, 24, 39, .14));
+
+    /* 테두리 톤 */
+    --b-strong: rgba(17, 24, 39, 0.18);
+    --b-mid: rgba(17, 24, 39, 0.12);
+    --b-soft: rgba(17, 24, 39, 0.10);
+}
+
+/* 카드 */
+#contract-form .card {
+    border: 1px solid var(--b-strong);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 16px;
+}
+
+#contract-form .card+.card {
+    margin-top: 12px;
+}
+
+#contract-form .title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+#contract-form .section-title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+#contract-form .help {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #9CA3AF;
+    line-height: 1.5;
+}
+
+/* 폼 그리드 */
+#contract-form .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+#contract-form .span-2 {
+    grid-column: 1 / span 2;
+}
+
+#contract-form .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--b-soft);
+}
+
+#contract-form .grid>.field:nth-last-child(-n+2) {
+    border-bottom: none;
+}
+
+#contract-form .label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+#contract-form .req {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* 입력류 */
+#contract-form .input,
+#contract-form .textarea {
+    border: 1px solid var(--b-mid);
+    border-radius: 10px;
+    background: #fff;
+    padding: 0 12px;
+    height: 40px;
+    font-size: 13.5px;
+    color: var(--text);
+}
+
+#contract-form .textarea {
+    height: auto;
+    padding: 10px 12px;
+    min-height: 260px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+#contract-form .input:focus,
+#contract-form .textarea:focus {
+    outline: none;
+    border-color: rgba(17, 24, 39, 0.75);
+    box-shadow: var(--ring);
+}
+
+#contract-form .input[readonly] {
+    background: var(--bg);
+    border-color: var(--b-mid);
+}
+
+#contract-form .file {
+    border: 1px solid var(--b-mid);
+    border-radius: 10px;
+    background: #fff;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text);
+}
+
+/* PDF 미리보기 */
+#contract-form .pdf-box {
+    border: 1px solid var(--b-mid);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg);
+}
+
+#contract-form .pdf-embed {
+    width: 100%;
+    height: 520px;
+    display: block;
+    border: 0;
+}
+
+/* 에러 */
+#contract-form .alert {
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+    color: #991b1b;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* 하단 버튼 */
+#contract-form .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+#contract-form .footer-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* 반응형 */
+@media (max-width: 760px) {
+    #contract-form .grid {
+        grid-template-columns: 1fr;
+    }
+
+    #contract-form .span-2 {
+        grid-column: auto;
+    }
+
+    #contract-form .pdf-embed {
+        height: 420px;
+    }
+}
+
+/* ========================================================================================
+  10. client_show.ejs 전용(고객상세 톤) - 다른 화면 영향 최소화를 위해 #client-show 스코프에만 적용
+  Client / Detail Card – Key-Value 정렬 & 구분선 강화
+========================================================================================= */
+
+/* 거래처 상세 상단 회사명 */
+#client-show .page-title {
+    font-weight: 750;
+}
+
+/* 카드 내부 메타 그리드 간격 안정 */
+#client-show .meta-grid {
+    gap: 16px 32px;
+}
+
+/* 한 줄짜리 정보 행 */
+#client-show .kv {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+/* 마지막 줄은 구분선 제거 */
+#client-show .meta-grid>div>.kv:last-of-type {
+    border-bottom: none;
+}
+
+/* 라벨 (좌측) */
+#client-show .kv .k {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: -0.01em;
+}
+
+/* 값 (우측) */
+#client-show .kv .v {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+/* 메모 영역은 줄간격 조금 여유 */
+#client-show .kv .v[style*="pre-wrap"],
+#client-show .kv.memo .v {
+    line-height: 1.7;
+}
+
+/* 카드 제목과 본문 간격 정돈 */
+#client-show .card>.title {
+    margin-bottom: 12px;
+}
+
+/* 카드 간 여백 통일 */
+#client-show .card {
+    margin-bottom: 14px;
+}
+
+/* 거래처 상세 전용 page-head */
+#client-show .page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+/* 좌측 타이틀 영역 (없어도 공간 유지) */
+#client-show .page-head>.page-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* 우측 버튼 영역 */
+#client-show .page-head .head-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+/* 버튼 높이/정렬 보정 (기성 상세와 동일) */
+#client-show .page-head .btn {
+    height: 36px;
+}
+
+/* 모바일 대응 */
+@media (max-width: 520px) {
+    #client-show .page-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #client-show .page-head .head-actions {
+        justify-content: flex-end;
+    }
+}
+
+/* =========================================
+   client_form.ejs (상세보기 UI 유지 + 인풋만 교체)
+   - 다른 화면 영향 없도록 #client-show.client-form 스코프
+========================================= */
+
+/* 폼 모드에서 v 영역은 입력요소가 꽉 차게 */
+#client-show.client-form .kv .v {
+    width: 100%;
+}
+
+/* kv 안 input */
+#client-show.client-form .kv-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 13.5px;
+    color: var(--text);
+}
+
+/* kv 안 textarea */
+#client-show.client-form .kv-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.6;
+    resize: vertical;
+}
+
+/* 파일 입력 */
+#client-show.client-form .kv-file {
+    margin-top: 8px;
+    width: 100%;
+}
+
+/* 파일 표시 줄 */
+#client-show.client-form .file-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+#client-show.client-form .req {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+#client-show.client-form .help {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #9CA3AF;
+}

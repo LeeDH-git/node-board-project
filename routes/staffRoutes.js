@@ -2,6 +2,7 @@
 const express = require("express");
 const path = require("path");
 const multer = require("multer");
+const { normalizeOriginalName } = require("../middlewares/utils/fileName"); // ✅ [추가] 파일명 정규화
 const staffService = require("../services/staffService");
 
 const router = express.Router();
@@ -10,7 +11,9 @@ const uploadDir = path.join(__dirname, "..", "uploads", "staff_certs");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    const safe = file.originalname.replace(/[^\w.\-가-힣\s]/g, "_");
+    // ✅ [수정] 한글 파일명 깨짐 방지: originalname 정규화 후 safe 처리
+    const original = normalizeOriginalName(file.originalname);
+    const safe = original.replace(/[^\w.\-가-힣\s]/g, "_");
     const unique = `${Date.now()}_${Math.random()
       .toString(16)
       .slice(2)}_${safe}`;
