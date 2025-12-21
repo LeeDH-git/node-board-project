@@ -1,138 +1,93 @@
-<style>
-  :root{
-    --bg: var(--bg, #F9FAFB);
-    --panel: var(--panel, #FFFFFF);
-    --text: var(--text, #111827);
-    --muted: var(--muted, #6B7280);
-    --border: var(--border, #E5E7EB);
-    --ring: var(--ring, 0 0 0 4px rgba(17,24,39,.14));
-  }
+<link rel="stylesheet" href="/css/style.css">
 
-  .page-head{
-    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;
-    align-items:flex-start;
-  }
-  .page-head h2{margin:0;font-size:18px;font-weight:650;color:var(--text);}
-  .sub{margin-top:2px;font-size:12.5px;color:var(--muted);}
-  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-
-  .card{border:1px solid var(--border);border-radius:12px;background:#fff;padding:16px;}
-  .title{margin:0 0 6px 0;font-size:16px;font-weight:650;color:var(--text);}
-
-  .kv{
-    display:grid;
-    grid-template-columns:140px 1fr;
-    gap:8px;
-    padding:10px 0;
-    border-bottom:1px solid var(--border);
-  }
-  .kv:last-child{border-bottom:none;}
-
-  .k{color:var(--muted);font-size:12.5px;font-weight:650;}
-  .v{color:var(--text);font-size:13.5px;font-weight:550;word-break:break-word;}
-
-  .pill{
-    display:inline-flex;align-items:center;justify-content:center;
-    padding:2px 10px;border:1px solid var(--border);border-radius:999px;
-    background:#fff;color:var(--muted);font-size:12px;white-space:nowrap;
-  }
-
-  .link{color:var(--text);text-decoration:none;font-weight:650;}
-  .link:hover{text-decoration:underline;}
-
-  .btn-ghost{
-    height: 34px;
-    padding: 0 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #fff;
-    color: var(--text);
-    cursor: pointer;
-    font-size: 12.5px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    white-space: nowrap;
-    text-decoration:none;
-  }
-  .btn-ghost:hover{ background: var(--bg); }
-
-  .btn-danger{
-    height:36px;padding:0 14px;border-radius:10px;border:1px solid #ef4444;
-    background:#fff;color:#ef4444;cursor:pointer;
-  }
-  .btn-danger:hover{background:#fff5f5;}
-
-  .file-row{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:center;
-  }
-  .file-meta{
-    color:var(--muted);
-    font-size:12px;
-    font-weight: 500;
-  }
-
-  @media (max-width:520px){
-    .kv{grid-template-columns:1fr;}
-    .v{padding-top:2px;}
-  }
-</style>
-
+<main id="library_show">
 <div class="page-head">
   <div>
-    <h2>자료 상세</h2>
-    <div class="sub"><%= doc.title %></div>
+    <div class="page-title">
+      <%= doc.title || '자료 상세' %>
+    </div>
+    <!-- ✅ 사용자가 원한대로: "자료 정보 및 다운로드" 아래에 버튼이 없어야 하므로,
+         여기에는 문구만(또는 필요 없으면 이 div 자체를 제거) -->
+    <!-- <div class="page-sub">
+      자료 정보 및 다운로드
+    </div> -->
   </div>
 
-  <div class="actions">
-    <a href="/library" class="btn">목록</a>
-    <a href="/library/<%= doc.id %>/edit" class="btn btn-primary">수정</a>
-    <form action="/library/<%= doc.id %>/delete" method="post" style="margin:0;" onsubmit="return confirm('정말 삭제하시겠습니까?');">
-      <button type="submit" class="btn-danger">삭제</button>
-    </form>
-  </div>
 </div>
 
-<div class="card">
-  <div class="title"><%= doc.title %></div>
 
-  <div class="kv">
-    <div class="k">구분</div>
-    <div class="v">
-      <span class="pill"><%= doc.doc_type || '-' %></span>
-    </div>
-  </div>
+  <!-- <div class="c-wrap"> -->
 
-  <div class="kv">
-    <div class="k">카테고리</div>
-    <div class="v"><%= doc.category || '-' %></div>
-  </div>
+    <div class="c-card">
+      <div class="c-title">기본 정보</div>
 
-  <div class="kv">
-    <div class="k">등록일</div>
-    <div class="v"><%= doc.created_at || '-' %></div>
-  </div>
+      <div class="c-meta">
+        <div>
+          <div class="c-kv">
+            <div class="c-k">제목</div>
+            <div class="c-v">
+              <%= doc.title || '-' %>
+            </div>
+          </div>
 
-  <div class="kv">
-    <div class="k">파일</div>
-    <div class="v">
-      <% if (doc.filename) { %>
-        <div class="file-row">
-          <a class="btn-ghost" href="/uploads/library/<%= doc.filename %>" target="_blank">다운로드</a>
-          <a class="link" href="/uploads/library/<%= doc.filename %>" target="_blank"><%= doc.original_name || '파일' %></a>
-          <span class="file-meta">(<%= doc.size ? Math.round(doc.size/1024) + ' KB' : '-' %>)</span>
+          <div class="c-kv">
+            <div class="c-k">구분</div>
+            <div class="c-v">
+              <% if (doc.doc_type==='form' ) { %> 서식
+                <% } else if (doc.doc_type==='reference' ) { %> 자료
+                  <% } else if (doc.doc_type==='safety' ) { %> 안전
+                    <% } else if (doc.doc_type==='contract' ) { %> 계약
+                      <% } else { %> - <% } %>
+            </div>
+          </div>
         </div>
-      <% } else { %>
-        -
-      <% } %>
-    </div>
-  </div>
 
-  <div class="kv">
-    <div class="k">메모</div>
-    <div class="v"><%= doc.memo || '-' %></div>
-  </div>
-</div>
+        <div>
+          <div class="c-kv">
+            <div class="c-k">카테고리</div>
+            <div class="c-v">
+              <%= doc.category || '-' %>
+            </div>
+          </div>
+
+          <div class="c-kv">
+            <div class="c-k">등록일</div>
+            <div class="c-v">
+              <%= doc.created_at ? String(doc.created_at).substring(0,10) : "-" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="c-card">
+      <div class="c-section-title">첨부 파일</div>
+
+      <div class="c-kv" style="border-bottom: none;">
+        <div class="c-k">다운로드</div>
+        <div class="c-v">
+          <% if (doc && doc.filename) { %>
+            <a class="c-link" href="/uploads/library/<%= doc.filename %>" target="_blank">
+              <%= doc.original_name || doc.filename %>
+            </a>
+            <span style="color: var(--muted); margin-left: 6px; font-size: 12.5px;">
+              (<%= doc.size ? Math.round(doc.size/1024) + ' KB' : '0 KB' %>)
+            </span>
+            <% } else { %>
+              <span style="color: var(--muted);">-</span>
+              <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="c-card">
+      <div class="c-section-title">메모</div>
+      <div class="c-kv" style="border-bottom: none; display: block;">
+        <div style="font-size: 13.5px; color: var(--text); line-height: 1.7; white-space: pre-wrap;">
+          <%= doc.memo || '-' %>
+        </div>
+      </div>
+    </div>
+<!-- 
+  </div> -->
+</main>

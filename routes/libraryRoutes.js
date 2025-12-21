@@ -2,8 +2,7 @@
 const express = require("express");
 const path = require("path");
 const multer = require("multer");
-const { normalizeOriginalName } = require("../middlewares/utils/fileName"); // ✅ [추가] 파일명 정규화
-const libraryService = require("../services/libraryService");
+const libraryService = require("../services/libraryService"); // 프로젝트 구조에 맞게 경로 확인
 
 const router = express.Router();
 const PER_PAGE = 15;
@@ -14,13 +13,10 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, "..", "uploads", "library")),
   filename: (req, file, cb) => {
     const time = Date.now();
-    // ✅ [수정] 한글 파일명 깨짐 방지: originalname 정규화 후 ext 추출
-    const original = normalizeOriginalName(file.originalname);
-    const ext = path.extname(original);
+    const ext = path.extname(file.originalname);
     cb(null, `${time}${ext}`);
   },
 });
-
 const upload = multer({ storage });
 
 function parseId(param) {
@@ -48,15 +44,20 @@ router.get("/", (req, res) => {
   const page = parsePage(req.query.page);
 
   const result = libraryService.list(q, type, page, PER_PAGE);
-  res.render("library_list", { ...result, q, type });
+  res.render("library_list", {
+    ...result,
+    q,
+    type,
+    currentPage: page,
+  });
 });
 
-// 신규 폼: GET /library/new
+// 신규 폼
 router.get("/new", (req, res) => {
   res.render("library_form", { doc: null });
 });
 
-// 신규 저장: POST /library
+// 신규 저장
 router.post("/", upload.single("file"), (req, res) => {
   try {
     libraryService.create(req.body, req.file);
@@ -66,25 +67,37 @@ router.post("/", upload.single("file"), (req, res) => {
   }
 });
 
-// 상세: GET /library/:id
+// 상세 보기
 router.get("/:id", (req, res) => {
   const id = parseId(req.params.id);
   const doc = libraryService.get(id);
   if (!doc) return res.status(404).send("존재하지 않는 자료입니다.");
 
-  res.render("library_show", { doc });
+  const headerAction = `
+    <a href="/library" class="btn">목록</a>
+    <a href="/library/${doc.id}/edit" class="btn btn-primary">수정</a>
+    <form action="/library/${doc.id}/delete" method="post" style="display:inline; margin:0;"
+          onsubmit="return confirm('정말 삭제하시겠습니까?');">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+  `;
+
+  res.render("library_show", {
+    doc,
+    headerSub: "자료 정보 및 다운로드",
+    headerAction, // ✅ layout 우측(빨간 박스)에 붙음
+  });
 });
 
-// 수정 폼: GET /library/:id/edit
+// 수정 폼
 router.get("/:id/edit", (req, res) => {
   const id = parseId(req.params.id);
   const doc = libraryService.get(id);
   if (!doc) return res.status(404).send("존재하지 않는 자료입니다.");
-
   res.render("library_form", { doc });
 });
 
-// 수정 저장: POST /library/:id/edit
+// 수정 저장
 router.post("/:id/edit", upload.single("file"), (req, res) => {
   const id = parseId(req.params.id);
   try {
@@ -95,7 +108,7 @@ router.post("/:id/edit", upload.single("file"), (req, res) => {
   }
 });
 
-// 삭제: POST /library/:id/delete
+// 삭제
 router.post("/:id/delete", (req, res) => {
   const id = parseId(req.params.id);
   try {

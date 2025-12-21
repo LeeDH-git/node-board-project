@@ -39,9 +39,9 @@
 
             <td class="nowrap">
               <!-- 기존 상세 페이지가 있다면 링크로 바꾸세요. (예: /client/<%= c.id %>) -->
-              <span class="link">
+              <a class="link" href="/client/<%= c.id %>/edit">
                 <%= c.name || '' %>
-              </span>
+              </a>
             </td>
 
             <td class="text-center nowrap">
@@ -85,9 +85,9 @@
   <div class="pagination" aria-label="Client pagination">
     <% for (let p=1; p <=totalPages; p++) { %>
       <% if (p===page) { %>
-        <span class="page current">
+        <a class="page current">
           <%= p %>
-        </span>
+        </a>
         <% } else { %>
           <a class="page" href="/client?page=<%= p %><%= q ? '&q=' + encodeURIComponent(q) : '' %>">
             <%= p %>

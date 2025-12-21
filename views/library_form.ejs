@@ -1,225 +1,139 @@
-<style>
-  /* contract_form.ejs 톤과 동일 계열 */
-  :root{
-    --bg: var(--bg, #F9FAFB);
-    --panel: var(--panel, #FFFFFF);
-    --text: var(--text, #111827);
-    --muted: var(--muted, #6B7280);
-    --border: var(--border, #E5E7EB);
-    --ring: var(--ring, 0 0 0 4px rgba(17,24,39,.14));
-  }
+<link rel="stylesheet" href="/css/style.css">
 
-  .page-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .page-head h2{
-    margin:0;
-    font-size: 18px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-  .page-head .sub{
-    margin: 2px 0 0;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-  .head-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap: wrap;
-    align-items:center;
-    justify-content:flex-end;
-  }
-
-  .section{
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--panel);
-    padding: 16px;
-    margin-bottom: 12px;
-  }
-  .section-title{
-    margin: 0 0 10px 0;
-    font-size: 13px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-
-  .grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .span-2{ grid-column: 1 / span 2; }
-
-  .field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .grid > .field:nth-last-child(-n+2){ border-bottom: none; }
-
-  .label{
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 700;
-  }
-  .help{
-    margin: 6px 0 0;
-    font-size: 12px;
-    color: #9CA3AF;
-    line-height: 1.5;
-  }
-
-  .input, .select, .textarea{
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: #fff;
-    color: var(--text);
-    font-size: 13.5px;
-    box-shadow: inset 0 1px 0 rgba(0,0,0,.03);
-  }
-  .input, .select{
-    height: 40px;
-    padding: 0 12px;
-  }
-  .textarea{
-    padding: 10px 12px;
-    min-height: 140px;
-    resize: vertical;
-    line-height: 1.6;
-  }
-  .file{
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: #fff;
-    padding: 10px 12px;
-    font-size: 13px;
-    color: var(--text);
-  }
-
-  /* 라벨/입력 사이 구분선 */
-  .field .input, .field .select, .field .textarea, .field .file{
-    margin-top: 6px;
-    border-top: 1px solid var(--border);
-  }
-
-  .input:focus, .select:focus, .textarea:focus{
-    outline:none;
-    border-color: var(--text);
-    box-shadow: var(--ring);
-  }
-
-  .footer{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-  }
-
-  /* Danger 버튼 */
-  .btn-danger{
-    height: 36px;
-    padding: 0 14px;
-    border-radius: 10px;
-    border: 1px solid #ef4444;
-    background: #fff;
-    color: #ef4444;
-    cursor: pointer;
-  }
-  .btn-danger:hover{ background:#fff5f5; }
-
-  @media (max-width: 760px){
-    .grid{ grid-template-columns: 1fr; }
-    .span-2{ grid-column: auto; }
-    .grid > .field:nth-last-child(-n+2){ border-bottom: 1px solid var(--border); }
-    .grid > .field:last-child{ border-bottom: none; }
-  }
-</style>
-
-<div class="page-head">
-  <div>
-    <h2><%= doc ? "자료 수정" : "자료 등록" %></h2>
-    <div class="sub">파일을 업로드하고 분류/메모를 남겨 관리하세요</div>
-  </div>
-
-  <div class="head-actions">
-    <a href="/library" class="btn">목록</a>
-    <% if (doc) { %>
-      <a href="/library/<%= doc.id %>" class="btn">상세</a>
-    <% } %>
-  </div>
-</div>
-
-<% if (doc) { %>
-  <form action="/library/<%= doc.id %>/delete" method="post" style="margin:0 0 12px 0;"
-        onsubmit="return confirm('정말 삭제하시겠습니까?');">
-    <button type="submit" class="btn-danger">삭제</button>
-    <span class="help" style="display:inline-block; margin-left:10px;">삭제는 되돌릴 수 없습니다.</span>
-  </form>
-<% } %>
-
-<form method="post" action="<%= doc ? ('/library/' + doc.id + '/edit') : '/library' %>" enctype="multipart/form-data">
-  <div class="section">
-    <div class="section-title">기본 정보</div>
-
-    <div class="grid">
-      <div class="field span-2">
-        <div class="label">제목 <span style="color:#ef4444;">*</span></div>
-        <input class="input" type="text" name="title" required
-               value="<%= doc ? (doc.title || '') : '' %>"
-               placeholder="예: 안전서류 체크리스트, 표준계약서, TBM 서식" />
+<main id="library_form" class="library-form">
+  <div class="page-head">
+    <div>
+      <div class="page-title">
+        <%= doc ? "자료 수정" : "자료 등록" %>
       </div>
+      <div class="page-sub">파일을 업로드하고 분류/메모를 남겨 관리하세요</div>
+    </div>
 
-      <div class="field">
-        <div class="label">구분</div>
-        <select class="select" name="doc_type">
-          <option value="form" <%= doc && doc.doc_type === 'form' ? 'selected' : '' %>>서식</option>
-          <option value="reference" <%= doc && doc.doc_type === 'reference' ? 'selected' : '' %>>자료</option>
-          <option value="safety" <%= doc && doc.doc_type === 'safety' ? 'selected' : '' %>>안전</option>
-          <option value="contract" <%= doc && doc.doc_type === 'contract' ? 'selected' : '' %>>계약</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <div class="label">카테고리</div>
-        <input class="input" type="text" name="category"
-               value="<%= doc ? (doc.category || '') : '' %>"
-               placeholder="예: 철근, 거푸집, 안전보건, 계약, 노무" />
-      </div>
-
-      <div class="field span-2">
-        <div class="label">파일 업로드</div>
-        <input class="file" type="file" name="file" />
-        <div class="help">
-          <% if (doc && doc.original_name) { %>
-            현재 파일: <%= doc.original_name %> (새 파일 선택 시 교체)
-          <% } else { %>
-            파일이 없어도 등록은 가능합니다. (메모만 저장)
-          <% } %>
-        </div>
-      </div>
-
-      <div class="field span-2" style="border-bottom:none;">
-        <div class="label">메모</div>
-        <textarea class="textarea" name="memo" placeholder="사용처/주의사항/버전 등"><%= doc ? (doc.memo || '') : '' %></textarea>
-      </div>
+    <div class="head-actions">
+      <a href="/library" class="btn">목록</a>
+      <% if (doc) { %>
+        <a href="/library/<%= doc.id %>" class="btn">상세</a>
+        <% } %>
     </div>
   </div>
 
-  <div class="footer">
-    <a href="/library" class="btn">취소</a>
-    <button type="submit" class="btn btn-primary"><%= doc ? "수정 저장" : "등록" %></button>
-  </div>
-</form>
+  <% if (doc) { %>
+    <form action="/library/<%= doc.id %>/delete" method="post" style="margin:0 0 12px 0;"
+      onsubmit="return confirm('정말 삭제하시겠습니까?');">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+    <% } %>
+
+      <form method="post" action="<%= doc ? ('/library/' + doc.id + '/edit') : '/library' %>"
+        enctype="multipart/form-data">
+
+        <!-- 카드 1: 기본정보 -->
+        <div class="c-card">
+          <div class="c-title">
+            <%= doc ? (doc.title || '자료 수정' ) : '자료 정보' %>
+          </div>
+          <div class="c-sub">기본 분류 정보를 입력하세요.</div>
+
+          <div class="c-meta">
+            <div>
+              <div class="c-kv">
+                <div class="c-k">제목 <span class="req">*</span></div>
+                <div class="c-v">
+                  <input class="c-input" type="text" name="title" required value="<%= doc ? (doc.title || '') : '' %>"
+                    placeholder="예: 안전교육 자료, 표준서식, 계약서 샘플" />
+                </div>
+              </div>
+
+              <div class="c-kv">
+                <div class="c-k">구분</div>
+                <div class="c-v">
+                  <select class="c-select" name="doc_type">
+                    <option value="form" <%=doc && doc.doc_type==='form' ? 'selected' : '' %>>서식</option>
+                    <option value="reference" <%=doc && doc.doc_type==='reference' ? 'selected' : '' %>>자료</option>
+                    <option value="safety" <%=doc && doc.doc_type==='safety' ? 'selected' : '' %>>안전</option>
+                    <option value="contract" <%=doc && doc.doc_type==='contract' ? 'selected' : '' %>>계약</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="c-kv">
+                <div class="c-k">카테고리</div>
+                <div class="c-v">
+                  <input class="c-input" type="text" name="category" value="<%= doc ? (doc.category || '') : '' %>"
+                    placeholder="예: 철근, 거푸집, 안전보건, 계약, 노무" />
+                </div>
+              </div>
+
+              <div class="c-kv">
+                <div class="c-k">등록일</div>
+                <div class="c-v">
+                  <span class="c-muted">
+                    <%= doc && doc.created_at ? String(doc.created_at).substring(0,10) : '-' %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 카드 2: 파일 -->
+        <div class="c-card">
+          <div class="c-section-title">파일</div>
+
+          <% if (doc && (doc.filename || doc.original_name)) { %>
+            <div class="c-kv">
+              <div class="c-k">현재 파일</div>
+              <div class="c-v">
+                <% if (doc.filename) { %>
+                  <a class="c-link" href="/uploads/library/<%= doc.filename %>" target="_blank">
+                    <%= doc.original_name || doc.filename %>
+                  </a>
+                  <span class="c-muted">
+                    (<%= doc.size ? Math.round(doc.size/1024) + ' KB' : '-' %>)
+                  </span>
+                  <% } else { %>
+                    <span class="c-muted">-</span>
+                    <% } %>
+              </div>
+            </div>
+            <% } %>
+
+              <div class="c-kv" style="border-bottom:none;">
+                <div class="c-k">파일 업로드</div>
+                <div class="c-v">
+                  <input class="c-file" type="file" name="file" />
+                  <div class="c-help">
+                    <% if (doc) { %>
+                      새 파일을 선택하면 기존 파일을 대체합니다. (선택하지 않으면 기존 파일 유지)
+                      <% } else { %>
+                        파일을 선택하지 않아도 등록은 가능합니다. (추후 업로드 가능)
+                        <% } %>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+        <!-- 카드 3: 메모 -->
+        <div class="c-card">
+          <div class="c-section-title">메모</div>
+
+          <div class="c-kv" style="border-bottom:none;">
+            <div class="c-k">메모</div>
+            <div class="c-v">
+              <textarea class="c-textarea" name="memo"
+                placeholder="사용처/주의사항/버전 등"><%= doc ? (doc.memo || '') : '' %></textarea>
+              <div class="c-help">예: 현장 안전교육 시 배포 / 최신본은 2025-12 기준</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-footer">
+          <a href="/library" class="btn">취소</a>
+          <button type="submit" class="btn btn-primary">
+            <%= doc ? "수정 저장" : "등록" %>
+          </button>
+        </div>
+      </form>
+</main>
