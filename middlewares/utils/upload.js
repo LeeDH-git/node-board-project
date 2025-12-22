@@ -4,10 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
-const {
-  normalizeOriginalName,
-  sanitizeFileName,
-} = require("../utils/fileName");
+const { normalizeOriginalName, sanitizeFileName } = require("./fileName");
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

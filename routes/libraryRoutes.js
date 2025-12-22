@@ -1,23 +1,20 @@
 // routes/libraryRoutes.js
 const express = require("express");
 const path = require("path");
-const multer = require("multer");
-const libraryService = require("../services/libraryService"); // 프로젝트 구조에 맞게 경로 확인
+const libraryService = require("../services/libraryService");
+
+// ✅ /middlewares/utils/upload.js 사용 (같은 폴더의 fileName.js를 내부에서 사용함)
+const { makeUploader } = require("../middlewares/utils/upload");
 
 const router = express.Router();
 const PER_PAGE = 15;
 
-// 업로드 저장 경로
-const storage = multer.diskStorage({
-  destination: (req, file, cb) =>
-    cb(null, path.join(__dirname, "..", "uploads", "library")),
-  filename: (req, file, cb) => {
-    const time = Date.now();
-    const ext = path.extname(file.originalname);
-    cb(null, `${time}${ext}`);
-  },
+// ✅ 업로드 미들웨어 생성 (한글 파일명 복원/위험문자 제거/확장자 유지/충돌방지 포함)
+const upload = makeUploader({
+  dir: path.join(__dirname, "..", "uploads", "library"),
+  maxMB: 10,
+  keepOriginalExt: true,
 });
-const upload = multer({ storage });
 
 function parseId(param) {
   return parseInt(param, 10);
@@ -85,7 +82,7 @@ router.get("/:id", (req, res) => {
   res.render("library_show", {
     doc,
     headerSub: "자료 정보 및 다운로드",
-    headerAction, // ✅ layout 우측(빨간 박스)에 붙음
+    headerAction, // ✅ layout 우측에 붙음
   });
 });
 

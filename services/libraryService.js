@@ -1,7 +1,10 @@
 // services/libraryService.js
 const path = require("path");
 const fs = require("fs");
-const db = require("../db"); // 당신 프로젝트의 db 연결 모듈 경로에 맞추세요
+const db = require("../db");
+
+// ✅ fileName.js가 /middlewares/utils/ 에 있다고 했으니 이 경로가 맞습니다.
+const { normalizeOriginalName } = require("../middlewares/utils/fileName");
 
 function ensureTable() {
   db.exec(`
@@ -9,7 +12,7 @@ function ensureTable() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       category TEXT DEFAULT '',
-      doc_type TEXT DEFAULT 'form', -- form | reference | safety | contract | etc
+      doc_type TEXT DEFAULT 'form',
       filename TEXT DEFAULT '',
       original_name TEXT DEFAULT '',
       mime_type TEXT DEFAULT '',
@@ -19,7 +22,6 @@ function ensureTable() {
     );
   `);
 }
-
 ensureTable();
 
 function list(q, type, page, perPage) {
@@ -30,7 +32,9 @@ function list(q, type, page, perPage) {
   const params = [];
 
   if (q) {
-    where.push("(title LIKE ? OR category LIKE ? OR memo LIKE ? OR original_name LIKE ?)");
+    where.push(
+      "(title LIKE ? OR category LIKE ? OR memo LIKE ? OR original_name LIKE ?)"
+    );
     params.push(keyword, keyword, keyword, keyword);
   }
   if (type && type !== "all") {
@@ -40,25 +44,32 @@ function list(q, type, page, perPage) {
 
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-  const totalRow = db.prepare(`SELECT COUNT(*) as cnt FROM library_docs ${whereSql}`).get(...params);
+  const totalRow = db
+    .prepare(`SELECT COUNT(*) as cnt FROM library_docs ${whereSql}`)
+    .get(...params);
+
   const totalCount = totalRow.cnt;
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
 
-  const rows = db.prepare(`
-    SELECT
-      id,
-      title,
-      category,
-      doc_type,
-      original_name,
-      filename,
-      size,
-      created_at
-    FROM library_docs
-    ${whereSql}
-    ORDER BY id DESC
-    LIMIT ? OFFSET ?
-  `).all(...params, perPage, offset);
+  const rows = db
+    .prepare(
+      `
+      SELECT
+        id,
+        title,
+        category,
+        doc_type,
+        original_name,
+        filename,
+        size,
+        created_at
+      FROM library_docs
+      ${whereSql}
+      ORDER BY id DESC
+      LIMIT ? OFFSET ?
+    `
+    )
+    .all(...params, perPage, offset);
 
   rows.forEach((r, idx) => (r.row_no = totalCount - (offset + idx)));
 
@@ -74,14 +85,16 @@ function create(body, file) {
   const memo = (body.memo || "").trim();
 
   const filename = file ? file.filename : "";
-  const originalName = file ? file.originalname : "";
+  const originalName = file ? normalizeOriginalName(file.originalname) : "";
   const mimeType = file ? file.mimetype : "";
   const size = file ? file.size : 0;
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO library_docs (title, category, doc_type, filename, original_name, mime_type, size, memo)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(title, category, docType, filename, originalName, mimeType, size, memo);
+  `
+  ).run(title, category, docType, filename, originalName, mimeType, size, memo);
 }
 
 function get(id) {
@@ -104,23 +117,40 @@ function update(id, body, file) {
   let mimeType = doc.mime_type;
   let size = doc.size;
 
-  // 새 파일 업로드 시 기존 파일 삭제 후 교체
   if (file) {
     if (doc.filename) {
-      const oldPath = path.join(__dirname, "..", "uploads", "library", doc.filename);
+      const oldPath = path.join(
+        __dirname,
+        "..",
+        "uploads",
+        "library",
+        doc.filename
+      );
       if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
     }
     filename = file.filename;
-    originalName = file.originalname;
+    originalName = normalizeOriginalName(file.originalname);
     mimeType = file.mimetype;
     size = file.size;
   }
 
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE library_docs
     SET title = ?, category = ?, doc_type = ?, filename = ?, original_name = ?, mime_type = ?, size = ?, memo = ?
     WHERE id = ?
-  `).run(title, category, docType, filename, originalName, mimeType, size, memo, id);
+  `
+  ).run(
+    title,
+    category,
+    docType,
+    filename,
+    originalName,
+    mimeType,
+    size,
+    memo,
+    id
+  );
 }
 
 function remove(id) {
@@ -135,4 +165,5 @@ function remove(id) {
   db.prepare(`DELETE FROM library_docs WHERE id = ?`).run(id);
 }
 
+// ✅ 이게 없으면 require 시 {} 로 보이거나, 원하는 함수가 안 나옵니다.
 module.exports = { list, create, get, update, remove };
