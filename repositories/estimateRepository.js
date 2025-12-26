@@ -67,6 +67,26 @@ const getLastEstimateNoStmt = db.prepare(`
   LIMIT 1
 `);
 
+const listEstimateFilesStmt = db.prepare(`
+  SELECT *
+  FROM estimate_files
+  WHERE estimate_id = ?
+  ORDER BY id DESC
+`);
+
+const insertEstimateFileStmt = db.prepare(`
+  INSERT INTO estimate_files (estimate_id, original_name, stored_name, stored_path, size_bytes)
+  VALUES (?, ?, ?, ?, ?)
+`);
+
+const findEstimateFileByIdStmt = db.prepare(`
+  SELECT * FROM estimate_files WHERE id = ?
+`);
+
+const deleteEstimateFileByIdStmt = db.prepare(`
+  DELETE FROM estimate_files WHERE id = ?
+`);
+
 // ==================== Repository 함수 ====================
 
 // 단건 조회
@@ -212,6 +232,28 @@ function getNextEstimateNo(year) {
   return `est-${year}-${String(nextSeq).padStart(3, "0")}`;
 }
 
+function listFilesByEstimateId(estimateId) {
+  return listEstimateFilesStmt.all(estimateId);
+}
+
+function insertEstimateFile(estimateId, f) {
+  const info = insertEstimateFileStmt.run(
+    estimateId,
+    f.original_name || null,
+    f.stored_name || null,
+    f.stored_path || null,
+    f.size_bytes || null
+  );
+  return info.lastInsertRowid;
+}
+
+function findEstimateFileById(fileId) {
+  return findEstimateFileByIdStmt.get(fileId);
+}
+
+function deleteEstimateFileById(fileId) {
+  return deleteEstimateFileByIdStmt.run(fileId);
+}
 
 module.exports = {
   findById,
@@ -223,5 +265,8 @@ module.exports = {
   updateEstimateTx,
   copyEstimateTx,
   deleteEstimateTx,
+  listFilesByEstimateId,
+  insertEstimateFile,
+  findEstimateFileById,
+  deleteEstimateFileById,
 };
-

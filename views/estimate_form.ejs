@@ -1,6 +1,11 @@
 <link rel="stylesheet" href="/css/style.css">
-<% const isEdit=mode==="edit" ; const safeEstimate=estimate || {}; const ROWS=15; const srcItems=Array.isArray(items) ?
-  items : []; const safeItems=Array.from({ length: ROWS }, (_, i)=> srcItems[i] || {});
+<% 
+  const isEdit=mode==="edit" ; 
+  const safeEstimate=estimate || {}; 
+  const ROWS=15; 
+  const srcItems=Array.isArray(items) ?  items : []; 
+  const safeItems=Array.from({ length: ROWS }, (_, i)=> srcItems[i] || {});
+  const safeFiles = (typeof files !== 'undefined' && Array.isArray(files)) ? files : [];
 
   function fmt(n){
   if (n===null || n===undefined || n==="") return "";
@@ -21,7 +26,7 @@
     </div>
     <% } %>
 
-      <form action="<%= formAction %>" method="POST" id="estimate-form">
+      <form action="<%= formAction %>" method="POST" id="estimate-form" enctype="multipart/form-data">
         <div class="section">
           <div class="section-title">기본 정보</div>
 
@@ -166,6 +171,73 @@
 
           <div class="help">※ 빈 행은 저장 시 자동으로 제외됩니다.</div>
         </div>
+
+      <!-- ✅ 첨부 파일 (하단 카드 1개 유지) -->
+      <div class="card">
+        <div class="title" style="font-size:13px; margin-bottom:8px;">첨부 파일</div>
+      
+        <% if (isEdit) { %>
+          <div class="muted" style="margin-bottom:10px;">업로드는 수정 화면에서만 / 상세 화면에서는 다운로드만</div>
+      
+          <!-- ✅ 중첩 form 제거: 메인폼 안에서 업로드 버튼만 다른 action으로 보냄 -->
+          <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+            <input type="file" name="file_upload" required />
+            <button type="submit" class="btn btn-primary" formaction="/estimate/<%= safeEstimate.id %>/files"
+              formmethod="post">업로드</button>
+          </div>
+      
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-center" style="width:80px;">ID</th>
+                  <th>원본 파일명</th>
+                  <th class="text-center" style="width:140px;">등록일</th>
+                  <th class="text-center" style="width:110px;">관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (safeFiles.length> 0) { %>
+                  <% safeFiles.forEach((f)=> { %>
+                    <tr>
+                      <td class="text-center">
+                        <%= f.id %>
+                      </td>
+                      <td class="nowrap">
+                        <a class="link" href="/estimate/files/<%= f.id %>/download">
+                          <%= f.original_name || '-' %>
+                        </a>
+                      </td>
+                      <td class="text-center nowrap">
+                        <%= f.created_at ? String(f.created_at).substring(0,10) : "-" %>
+                      </td>
+                      <td class="text-center">
+                        <button type="submit" class="btn-danger" style="padding:6px 10px;"
+                          formaction="/estimate/files/<%= f.id %>/delete" formmethod="post"
+                          onclick="return confirm('삭제하시겠습니까?');">삭제</button>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="4" class="text-center" style="color: var(--muted); padding: 14px;">
+                            첨부된 파일이 없습니다.
+                          </td>
+                        </tr>
+                        <% } %>
+              </tbody>
+            </table>
+          </div>
+      
+          <% } else { %>
+            <div class="muted" style="margin-bottom:10px;">견적 저장 시 첨부가 함께 업로드됩니다. (여러 개 선택 가능)</div>
+      
+            <!-- ✅ 신규(create): 메인 저장 POST /estimate로 같이 전송 -->
+            <input type="file" name="files" multiple />
+            <div class="help">필요한 파일을 선택한 뒤, 하단 “견적 저장”을 누르세요.</div>
+            <% } %>
+      </div>
+
 
         <div class="footer">
           <div class="footer-right">

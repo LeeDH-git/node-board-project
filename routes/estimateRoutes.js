@@ -3,11 +3,17 @@ const express = require("express");
 
 const estimateService = require("../services/estimateService");
 const estimateExcelService = require("../services/estimateExcelService");
-
 const estimateRepo = require("../repositories/estimateRepository"); // 엑셀 다운로드/번호 생성용(조회만)
 const puppeteer = require("puppeteer");
-
+const path = require("path");
+const { makeUploader } = require("../middlewares/utils/upload"); // 경로는 프로젝트에 맞게 유지
 const router = express.Router();
+
+const uploadEstimateFiles = makeUploader({
+  dir: path.join(__dirname, "../uploads/estimate_files"),
+  maxMB: 50, // ✅ 도면은 별도(선택지 A)로 빼는 전제라 50MB 정도
+  keepOriginalExt: true,
+});
 
 function parseId(param) {
   return parseInt(param, 10);
@@ -35,6 +41,7 @@ router.get("/", async (req, res) => {
       headerTitle: "견적 관리",
       headerSub: "공사별·거래처별 견적 등록 / 조회",
       //headerAction: `<a href="/estimate/new" class="btn btn-primary">견적 등록</a>`,
+      files: [],
     });
   } catch (err) {
     console.error(err);
@@ -62,10 +69,13 @@ router.get("/new", (req, res) => {
 });
 
 // 신규 저장
-router.post("/", (req, res) => {
+router.post("/", uploadEstimateFiles.array("files", 20), (req, res) => {
   try {
-    const id = estimateService.createEstimateFromRequest(req.body);
-    // 기존 동작은 목록으로 갔지만, UX상 상세로 보내는 게 보통 자연스러움
+    const id = estimateService.createEstimateFromRequest(
+      req.body,
+      req.files || []
+    );
+
     return res.redirect(`/estimate/${id}`);
   } catch (err) {
     const ROWS = 15;
@@ -79,7 +89,12 @@ router.post("/", (req, res) => {
       headerAction: `<a href="/estimate" class="btn">목록</a>`,
       mode: "create",
       estimate: { ...req.body, estimate_no: nextEstimateNo },
-      items: Array.isArray(req.body.items) ? req.body.items : (req.body.items ? Object.values(req.body.items) : []),
+      items: Array.isArray(req.body.items)
+        ? req.body.items
+        : req.body.items
+        ? Object.values(req.body.items)
+        : [],
+      files: [],
       nextEstimateNo,
       error: err.message,
     });
@@ -130,7 +145,11 @@ router.post("/:id/edit", (req, res) => {
       headerSub: "저장 시 기존 데이터가 업데이트됩니다.",
       headerAction,
       estimate: { ...(detail?.estimate || {}), ...req.body, id },
-      items: Array.isArray(req.body.items) ? req.body.items : (req.body.items ? Object.values(req.body.items) : []),
+      items: Array.isArray(req.body.items)
+        ? req.body.items
+        : req.body.items
+        ? Object.values(req.body.items)
+        : [],
       mode: "edit",
       nextEstimateNo: null,
       error: err.message,
@@ -224,7 +243,10 @@ router.get("/:id/pdf", async (req, res) => {
     });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="estimate_${id}.pdf"`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="estimate_${id}.pdf"`
+    );
     res.send(pdfBuffer);
   } catch (err) {
     console.error(err);
@@ -243,7 +265,10 @@ router.get("/:id/excel", async (req, res) => {
 
   const items = estimateRepo.findItemsByEstimateId(id);
 
-  const workbook = await estimateExcelService.buildEstimateWorkbook(estimate, items);
+  const workbook = await estimateExcelService.buildEstimateWorkbook(
+    estimate,
+    items
+  );
 
   res.setHeader(
     "Content-Type",
@@ -256,6 +281,42 @@ router.get("/:id/excel", async (req, res) => {
 
   await workbook.xlsx.write(res);
   res.end();
+});
+
+// 견적 첨부 업로드
+router.post(
+  "/:id/files",
+  uploadEstimateFiles.single("file_upload"),
+  (req, res) => {
+    const id = parseId(req.params.id);
+    try {
+      estimateService.addEstimateFileFromRequest(id, req.file);
+      return res.redirect(`/estimate/${id}`);
+    } catch (err) {
+      return res.status(400).send(err.message);
+    }
+  }
+);
+
+// 견적 첨부 다운로드
+router.get("/files/:fileId/download", (req, res) => {
+  const fileId = parseId(req.params.fileId);
+  const f = estimateService.getEstimateFile(fileId);
+  if (!f) return res.status(404).send("파일이 없습니다.");
+
+  const abs = path.join(process.cwd(), f.stored_path.replace(/^\//, ""));
+  // 원본 파일명으로 다운로드되게
+  return res.download(abs, f.original_name || f.stored_name || "file");
+});
+// 견적 첨부 삭제
+router.post("/files/:fileId/delete", (req, res) => {
+  const fileId = parseId(req.params.fileId);
+  try {
+    const estimateId = estimateService.deleteEstimateFile(fileId);
+    return res.redirect(`/estimate/${estimateId}`);
+  } catch (err) {
+    return res.status(400).send(err.message);
+  }
 });
 
 module.exports = router;

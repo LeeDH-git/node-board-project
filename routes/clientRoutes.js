@@ -138,6 +138,22 @@ router.post("/", uploadBiz.single("biz_cert"), (req, res) => {
 });
 
 /* ============================
+   상세 보기 (READ ONLY)
+============================ */
+router.get("/:id", (req, res) => {
+  const client = clientService.getClient(parseId(req.params.id));
+  if (!client) return res.status(404).send("존재하지 않는 거래처입니다.");
+
+  res.render("client_show", {
+    pageTitle: "거래처 상세",
+    client,
+    active: "client",
+    headerTitle: "거래처 상세",
+    headerSub: client.name || "",
+  });
+});
+
+/* ============================
    수정
 ============================ */
 router.get("/:id/edit", (req, res) => {

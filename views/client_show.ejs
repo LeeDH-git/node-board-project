@@ -1,0 +1,131 @@
+<link rel="stylesheet" href="/css/style.css">
+
+<main id="client-show" class="client-form client-show">
+  <div class="page-head">
+    <div class="page-title-wrap">
+      <div class="page-title">
+        <%= pageTitle || '거래처 상세' %>
+      </div>
+      <div class="sub">
+        <%= (client && client.name) ? client.name : '' %>
+      </div>
+    </div>
+
+    <div class="head-actions">
+      <a href="/client" class="btn">목록</a>
+      <a href="/client/<%= client.id %>/edit" class="btn btn-primary">수정</a>
+
+      <form method="post" action="/client/<%= client.id %>/delete" style="display:inline;">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('삭제하시겠습니까?');">삭제</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ 카드 1: 기본정보 (수정화면과 동일 톤, 읽기 전용) -->
+  <div class="card">
+    <div class="title" style="font-weight:800;">
+      <%= client.name || '-' %>
+    </div>
+    <div class="sub" style="margin-top:-6px;">
+      거래처 기본정보
+    </div>
+
+    <div class="meta-grid">
+      <div>
+        <div class="kv">
+          <div class="k">거래처명</div>
+          <div class="v">
+            <%= client.name || '-' %>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">사업자번호</div>
+          <div class="v">
+            <%= client.biz_no || '-' %>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">대표자</div>
+          <div class="v">
+            <%= client.ceo_name || '-' %>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">전화</div>
+          <div class="v">
+            <%= client.phone || '-' %>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="kv">
+          <div class="k">이메일</div>
+          <div class="v">
+            <%= client.email || '-' %>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">주소</div>
+          <div class="v">
+            <%= client.address || '-' %>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">등록일</div>
+          <div class="v">
+            <%= client.created_at ? String(client.created_at).substring(0,19) : "-" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 카드 2: 메모 (읽기 전용) -->
+  <div class="card">
+    <div class="title" style="font-size:13px; margin-bottom:8px;">메모</div>
+
+    <div class="meta-grid">
+      <div style="grid-column: 1 / -1;">
+        <div class="kv memo">
+          <div class="k">내용</div>
+          <div class="v">
+            <div class="readonly-block">
+              <%= client.memo ? client.memo : "-" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 카드 3: 사업자등록증 (읽기 전용) -->
+  <div class="card">
+    <div class="title" style="font-size:13px; margin-bottom:8px;">사업자등록증</div>
+
+    <div class="meta-grid">
+      <div style="grid-column: 1 / -1;">
+        <div class="kv">
+          <div class="k">파일</div>
+          <div class="v">
+            <% if (client.biz_cert_path) { %>
+              <div class="file-row">
+                <a class="link" href="<%= client.biz_cert_path %>" target="_blank" rel="noreferrer">
+                  <%= client.biz_cert_name || '첨부파일 보기' %>
+                </a>
+              </div>
+              <% } else { %>
+                <div class="muted">첨부된 파일이 없습니다.</div>
+                <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>

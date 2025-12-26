@@ -1,6 +1,9 @@
 // services/estimateService.js
 
 const estimateRepo = require("../repositories/estimateRepository");
+const path = require("path");
+const fs = require("fs");
+const { normalizeOriginalName } = require("../middlewares/utils/fileName"); // 경로는 프로젝트에 맞게 유지
 
 // ===== 공통 유틸 =====
 function toInt(value) {
@@ -82,7 +85,7 @@ async function listEstimates(searchQuery, page, perPage) {
 }
 
 // 신규 저장
-function createEstimateFromRequest(body) {
+function createEstimateFromRequest(body, files = []) {
   const { title, client_name } = body;
   const itemsRaw = normalizeItems(body.items);
 
@@ -90,7 +93,6 @@ function createEstimateFromRequest(body) {
     throw new Error("견적명은 필수입니다.");
   }
 
-  // 숫자형 캐스팅
   const items = itemsRaw.map((i) => ({
     ...i,
     qty: toFloat(i.qty),
@@ -106,8 +108,6 @@ function createEstimateFromRequest(body) {
 
   const totalAmount = calculateTotalAmount(items);
 
-  // 빈 행은 Repo 안쪽에서 그냥 다 넣어도 되지만,
-  // 여기서 아예 제거하고 넘기고 싶다면 filter 추가
   const filteredItems = items.filter((item) => {
     return (
       item.item_name || item.spec || item.unit || item.qty || item.total_amount
@@ -126,6 +126,18 @@ function createEstimateFromRequest(body) {
     },
     filteredItems
   );
+
+  // ✅ 첨부 파일 저장(신규에서도 첨부 가능)
+  if (Array.isArray(files) && files.length > 0) {
+    for (const file of files) {
+      estimateRepo.insertEstimateFile(id, {
+        original_name: normalizeOriginalName(file.originalname), // 한글 파일명 깨짐 방지
+        stored_name: file.filename,
+        stored_path: `/uploads/estimate_files/${file.filename}`,
+        size_bytes: file.size,
+      });
+    }
+  }
 
   return id;
 }
@@ -178,14 +190,16 @@ function getEstimateDetail(id, options = {}) {
   if (!estimate) return null;
 
   const items = estimateRepo.findItemsByEstimateId(id);
+  const files = estimateRepo.listFilesByEstimateId(id);
 
   if (options.fillRowCount) {
     return {
       estimate,
       items: fillItemsForEditView(items, options.fillRowCount),
+      files,
     };
   }
-  return { estimate, items };
+  return { estimate, items, files };
 }
 
 // 복사 / 삭제
@@ -196,6 +210,45 @@ function deleteEstimate(id) {
   return estimateRepo.deleteEstimateTx(id);
 }
 
+function addEstimateFileFromRequest(estimateId, file) {
+  const estimate = estimateRepo.findById(estimateId);
+  if (!estimate) throw new Error("존재하지 않는 견적입니다.");
+  if (!file) throw new Error("업로드 파일이 없습니다.");
+
+  // stored_path는 웹 접근 경로로 저장
+  const storedPath = `/uploads/estimate_files/${file.filename}`;
+
+  const rowId = estimateRepo.insertEstimateFile(estimateId, {
+    original_name: normalizeOriginalName(file.originalname), // ✅ 한글 깨짐 방지
+    stored_name: file.filename,
+    stored_path: storedPath,
+    size_bytes: file.size,
+  });
+
+  return rowId;
+}
+
+function getEstimateFile(fileId) {
+  const f = estimateRepo.findEstimateFileById(fileId);
+  if (!f) return null;
+  return f;
+}
+
+// 첨부 업로드/조회/삭제 함수
+function deleteEstimateFile(fileId) {
+  const f = estimateRepo.findEstimateFileById(fileId);
+  if (!f) throw new Error("첨부파일이 존재하지 않습니다.");
+
+  // 물리 파일 삭제(실패해도 DB는 삭제 진행 가능하게 처리)
+  if (f.stored_path) {
+    const abs = path.join(process.cwd(), f.stored_path.replace(/^\//, ""));
+    fs.unlink(abs, () => {});
+  }
+
+  estimateRepo.deleteEstimateFileById(fileId);
+  return f.estimate_id; // 라우트에서 상세로 리다이렉트 용
+}
+
 module.exports = {
   listEstimates,
   createEstimateFromRequest,
@@ -203,4 +256,7 @@ module.exports = {
   getEstimateDetail,
   copyEstimate,
   deleteEstimate,
+  addEstimateFileFromRequest,
+  getEstimateFile,
+  deleteEstimateFile,
 };

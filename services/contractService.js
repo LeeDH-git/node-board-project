@@ -97,7 +97,7 @@ function updateContractFromRequest(id, body, file) {
     throw new Error("PDF 또는 계약 내용을 입력해주세요.");
 
   contractRepo.updateContractTx(id, {
-    estimate_id: Null,
+    estimate_id: null,
     contract_no,
     title,
     client_name,

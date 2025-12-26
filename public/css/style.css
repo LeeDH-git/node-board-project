@@ -1676,17 +1676,17 @@ input[readonly] {
   Client / Detail Card – Key-Value 정렬 & 구분선 강화
 ========================================================================================= */
 
-/* 거래처 상세 상단 회사명 */
+/*  거래처 상세 상단 회사명 */
 #client-show .page-title {
     font-weight: 750;
 }
 
-/* 카드 내부 메타 그리드 간격 안정 */
+/*  카드 내부 메타 그리드 간격 안정  */
 #client-show .meta-grid {
     gap: 16px 32px;
 }
 
-/* 한 줄짜리 정보 행 */
+/*  한 줄짜리 정보 행  */
 #client-show .kv {
     display: grid;
     grid-template-columns: 120px 1fr;
@@ -1695,12 +1695,12 @@ input[readonly] {
     border-bottom: 1px solid var(--border);
 }
 
-/* 마지막 줄은 구분선 제거 */
+/* 마지막 줄은 구분선 제거  */
 #client-show .meta-grid>div>.kv:last-of-type {
     border-bottom: none;
 }
 
-/* 라벨 (좌측) */
+/* 라벨 (좌측)  */
 #client-show .kv .k {
     font-size: 12.5px;
     font-weight: 600;
@@ -1708,7 +1708,7 @@ input[readonly] {
     letter-spacing: -0.01em;
 }
 
-/* 값 (우측) */
+/*  값 (우측)  */
 #client-show .kv .v {
     font-size: 13.5px;
     font-weight: 500;
@@ -1717,13 +1717,13 @@ input[readonly] {
     word-break: break-word;
 }
 
-/* 메모 영역은 줄간격 조금 여유 */
+/* 메모 영역은 줄간격 조금 여유  */
 #client-show .kv .v[style*="pre-wrap"],
 #client-show .kv.memo .v {
     line-height: 1.7;
 }
 
-/* 카드 제목과 본문 간격 정돈 */
+/* 카드 제목과 본문 간격 정돈  */
 #client-show .card>.title {
     margin-bottom: 12px;
 }
@@ -1733,7 +1733,7 @@ input[readonly] {
     margin-bottom: 14px;
 }
 
-/* 거래처 상세 전용 page-head */
+/* 거래처 상세 전용 page-head  */
 #client-show .page-head {
     display: flex;
     align-items: flex-start;
@@ -1749,7 +1749,7 @@ input[readonly] {
     gap: 2px;
 }
 
-/* 우측 버튼 영역 */
+/* 우측 버튼 영역  */
 #client-show .page-head .head-actions {
     display: flex;
     gap: 8px;
@@ -1759,12 +1759,12 @@ input[readonly] {
     margin-left: auto;
 }
 
-/* 버튼 높이/정렬 보정 (기성 상세와 동일) */
+/* 버튼 높이/정렬 보정 (기성 상세와 동일)  */
 #client-show .page-head .btn {
     height: 36px;
 }
 
-/* 모바일 대응 */
+/* 모바일 대응  */
 @media (max-width: 520px) {
     #client-show .page-head {
         flex-direction: column;
@@ -1774,7 +1774,8 @@ input[readonly] {
     #client-show .page-head .head-actions {
         justify-content: flex-end;
     }
-}
+} 
+
 
 /* =========================================
    client_form.ejs (상세보기 UI 유지 + 인풋만 교체)

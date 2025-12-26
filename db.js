@@ -61,6 +61,21 @@ db.exec(`
     FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE CASCADE
   );
 
+  -- 견적 첨부파일 테이블
+  CREATE TABLE IF NOT EXISTS estimate_files (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    estimate_id   INTEGER NOT NULL,
+    original_name TEXT,
+    stored_name   TEXT,
+    stored_path   TEXT,
+    size_bytes    INTEGER,
+    created_at    TEXT DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS ix_estimate_files_estimate_id
+  ON estimate_files(estimate_id);
+
   /* =========================
      계약
   ========================= */

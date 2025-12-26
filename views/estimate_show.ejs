@@ -11,6 +11,8 @@
       return num.toLocaleString("ko-KR"); 
     }
     
+    const safeFiles = Array.isArray(files) ? files : [];
+
     let sumMaterialAmount=0,
         sumLaborAmount=0,
         sumExpenseAmount=0, 
@@ -168,5 +170,53 @@
       </table>
     </div>
   </div>
+<!-- ✅ 첨부 파일 (상세보기: 다운로드만) -->
+<div class="card">
+  <div class="title" style="font-size:13px; margin-bottom:8px;">첨부 파일</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="text-center" style="width:80px;">ID</th>
+          <th>원본 파일명</th>
+          <!-- <th>저장 파일명</th> -->
+          <th class="text-center" style="width:140px;">등록일</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (safeFiles.length> 0) { %>
+          <% safeFiles.forEach((f)=> { %>
+            <tr>
+              <td class="text-center">
+                <%= f.id %>
+              </td>
+              <td class="nowrap"> 
+                <a class="link" href="/estimate/files/<%= f.id %>/download">
+                  <%= f.original_name || '-' %>
+                </a>
+              </td>
+              <!-- <td class="nowrap">
+                <%= f.stored_name || '-' %>
+              </td> -->
+              <td class="text-center nowrap">
+                <%= f.created_at ? String(f.created_at).substring(0,10) : "-" %>
+              </td>
+            </tr>
+            <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="3" class="text-center" style="color: var(--muted); padding: 14px;">
+                    첨부된 파일이 없습니다.
+                  </td>
+                </tr>
+                <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
 
   </main>
